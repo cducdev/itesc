@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { useKnowledgeBase } from '@/hooks/use-knowledge-base'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ReportActions } from '@/components/report-actions'
+import { CitationsFooter } from '@/components/citations-footer'
 
 export function ReportContent({ id }: any) {
   const router = useRouter()
@@ -134,16 +135,26 @@ export function ReportContent({ id }: any) {
 
           <div className='prose max-w-none'>
             <h2>Summary</h2>
-            <p>{report.report.summary}</p>
 
-            {report.report.sections.map((section, index) => (
-              <div key={index}>
-                <h2>{section.title}</h2>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {section.content}
-                </ReactMarkdown>
-              </div>
-            ))}
+            {/* Scrollable content area */}
+            <div
+              className='max-h-[700px] overflow-y-auto pr-2'
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              <p className='mb-6'>{report.report.summary}</p>
+
+              {report.report.sections.map((section, index) => (
+                <div key={index} className='mb-6'>
+                  <h2>{section.title}</h2>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {section.content}
+                  </ReactMarkdown>
+                </div>
+              ))}
+
+              {/* Citations Section */}
+              <CitationsFooter report={report.report} />
+            </div>
           </div>
         </Card>
       </div>

@@ -16,6 +16,11 @@ export interface FlowProject {
   edges: Edge[]
   query: string
   selectedReports: string[]
+  viewport?: {
+    x: number
+    y: number
+    zoom: number
+  }
 }
 
 interface StorageInfo {
@@ -70,57 +75,6 @@ export function useFlowProjects(): UseFlowProjectsReturn {
     }
   })
 
-  // Helper function to preprocess nodes before saving to ensure loading states are reset
-  const preprocessNodesForSave = (nodes: Node[]): Node[] => {
-    return nodes.map((node) => {
-      // Create a deep copy to avoid mutating the original
-      const nodeCopy = JSON.parse(JSON.stringify(node))
-
-      // For report nodes, make sure we're not saving them in a loading state
-      if (nodeCopy.type === 'reportNode') {
-        // Log what we're about to save for debugging purposes
-        console.log('Saving reportNode:', nodeCopy.id, nodeCopy.data)
-
-        // The report object is stored in data.report, check if it exists
-        if (nodeCopy.data?.report) {
-          // We have a report object, make sure loading is false
-          nodeCopy.data.loading = false
-        } else if (nodeCopy.data?.loading === true) {
-          // Loading is true but no report exists
-          nodeCopy.data.loading = false
-
-          // Create a placeholder report
-          nodeCopy.data.report = {
-            title: 'Report Unavailable',
-            summary:
-              'The report content is not available. Please regenerate the report.',
-            sections: [],
-          }
-        }
-      }
-
-      if (nodeCopy.type === 'questionNode') {
-        // Log what we're about to save for debugging
-        console.log('Saving questionNode:', nodeCopy.id, nodeCopy.data)
-
-        // Check for questions in different possible formats
-        const hasSearchTerms =
-          nodeCopy.data?.searchTerms && Array.isArray(nodeCopy.data.searchTerms)
-
-        if (nodeCopy.data?.loading === true) {
-          nodeCopy.data.loading = false
-
-          // Only set empty searchTerms if none exist
-          if (!hasSearchTerms) {
-            nodeCopy.data.searchTerms = []
-          }
-        }
-      }
-
-      return nodeCopy
-    })
-  }
-
   // Save current state with preprocessing for loading states and debug logging
   const saveCurrentState = (
     nodes: Node[],
@@ -132,7 +86,6 @@ export function useFlowProjects(): UseFlowProjectsReturn {
     if (currentProject) {
       // Get all report nodes
       const reportNodes = nodes.filter((node) => node.type === 'reportNode')
-      console.log('Simple save - Report nodes:', reportNodes)
 
       // Update the current project
       const updatedData = {
@@ -158,7 +111,6 @@ export function useFlowProjects(): UseFlowProjectsReturn {
 
       // Save directly to localStorage
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProjects))
-      console.log('Directly saved to localStorage with simplified method')
     } else if (
       nodes.length > 0 ||
       edges.length > 0 ||
@@ -195,11 +147,6 @@ export function useFlowProjects(): UseFlowProjectsReturn {
     return nodes.map((node) => {
       // Create a deep copy to avoid mutating the original
       const nodeCopy = JSON.parse(JSON.stringify(node))
-
-      // Log what we're loading for report nodes
-      if (nodeCopy.type === 'reportNode') {
-        console.log('Loading reportNode:', nodeCopy.id, nodeCopy.data)
-      }
 
       // Set appropriate loading states for report and question nodes
       if (nodeCopy.type === 'reportNode') {
