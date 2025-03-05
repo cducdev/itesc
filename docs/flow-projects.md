@@ -16,15 +16,15 @@ The Open Deep Research platform now includes a project management system that al
 
 ## How It Works
 
-- **Automatic Saving**: The flow state (nodes, edges, query) is automatically saved to localStorage as you work.
-- **Project Selector**: Use the dropdown menu in the top navigation bar to:
-  - Switch between existing projects
-  - Create new projects
-  - Rename or delete projects
-- **Data Management**: Use the database icon button to:
-  - Export projects as JSON files
-  - Import previously exported projects
-  - View storage usage information
+-   **Automatic Saving**: The flow state (nodes, edges, query) is automatically saved to localStorage as you work.
+-   **Project Selector**: Use the dropdown menu in the top navigation bar to:
+    -   Switch between existing projects
+    -   Create new projects
+    -   Rename or delete projects
+-   **Data Management**: Use the database icon button to:
+    -   Export projects as JSON files
+    -   Import previously exported projects
+    -   View storage usage information
 
 ## Technical Implementation
 
@@ -32,26 +32,26 @@ The project management system is built on:
 
 1. `useFlowProjects` Hook:
 
-   - Manages project state using localStorage
-   - Provides functions for creating, updating, and deleting projects
-   - Handles automatic saving of project state
-   - Monitors localStorage usage
+    - Manages project state using localStorage
+    - Provides functions for creating, updating, and deleting projects
+    - Handles automatic saving of project state
+    - Monitors localStorage usage
 
 2. `ProjectSelector` Component:
 
-   - Provides a user interface for project management
-   - Displays a list of available projects with timestamps
-   - Includes dialogs for creating and deleting projects
+    - Provides a user interface for project management
+    - Displays a list of available projects with timestamps
+    - Includes dialogs for creating and deleting projects
 
 3. `ProjectActions` Component:
 
-   - Handles import and export functionality
-   - Shows storage usage information
-   - Provides warnings when storage is running low
+    - Handles import and export functionality
+    - Shows storage usage information
+    - Provides warnings when storage is running low
 
 4. localStorage Keys:
-   - `open-deep-research-flow-projects`: Stores the array of all projects
-   - `open-deep-research-current-project`: Stores the ID of the currently active project
+    - `IT-ESC-flow-projects`: Stores the array of all projects
+    - `IT-ESC-current-project`: Stores the ID of the currently active project
 
 ## Data Structure
 
@@ -71,9 +71,9 @@ interface FlowProject {
 
 ## Limitations
 
-- Project data is stored in the browser's localStorage, which has a size limit (typically 5MB)
-- Projects are not synced across devices or browsers
-- If localStorage is cleared, all projects will be lost (use export for backup)
+-   Project data is stored in the browser's localStorage, which has a size limit (typically 5MB)
+-   Projects are not synced across devices or browsers
+-   If localStorage is cleared, all projects will be lost (use export for backup)
 
 ## Best Practices
 
@@ -84,7 +84,7 @@ interface FlowProject {
 
 ## Future Improvements
 
-- Cloud synchronization for projects across devices
-- More advanced project organization (folders, tags, etc.)
-- Version history and rollback capabilities
-- Selective import of specific projects
+-   Cloud synchronization for projects across devices
+-   More advanced project organization (folders, tags, etc.)
+-   Version history and rollback capabilities
+-   Selective import of specific projects

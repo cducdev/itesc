@@ -18,24 +18,24 @@ Open Deep Research combines powerful tools to streamline research and report cre
 
 ## Features
 
-- 🔍 Flexible web search with Google or Bing APIs
-- ⏱️ Time-based filtering of search results
-- 📄 Content extraction from web pages
-- 🤖 Multi-platform AI support (Google Gemini, OpenAI GPT, Anthropic Sonnet)
-- 🎯 Flexible model selection with granular configuration
-- 📊 Multiple export formats (PDF, Word, Text)
-- 🧠 Knowledge Base for saving and accessing past reports
-- ⚡ Rate limiting for stability
-- 📱 Responsive design
+-   🔍 Flexible web search with Google or Bing APIs
+-   ⏱️ Time-based filtering of search results
+-   📄 Content extraction from web pages
+-   🤖 Multi-platform AI support (Google Gemini, OpenAI GPT, Anthropic Sonnet)
+-   🎯 Flexible model selection with granular configuration
+-   📊 Multiple export formats (PDF, Word, Text)
+-   🧠 Knowledge Base for saving and accessing past reports
+-   ⚡ Rate limiting for stability
+-   📱 Responsive design
 
 ### Local File Support
 
 The app supports analyzing local files for research and report generation. You can:
 
-- Upload TXT, PDF, and DOCX files directly through the interface
-- Process local documents alongside web search results
-- Generate reports from local files without requiring web search
-- Combine insights from both local files and web sources
+-   Upload TXT, PDF, and DOCX files directly through the interface
+-   Process local documents alongside web search results
+-   Generate reports from local files without requiring web search
+-   Combine insights from both local files and web sources
 
 To use local files:
 
@@ -48,10 +48,10 @@ To use local files:
 
 The Knowledge Base feature allows you to:
 
-- Save generated reports for future reference (reports are saved in the browser's local storage)
-- Access your research history
-- Quickly load and review past reports
-- Build a personal research library over time
+-   Save generated reports for future reference (reports are saved in the browser's local storage)
+-   Access your research history
+-   Quickly load and review past reports
+-   Build a personal research library over time
 
 ### Flow: Deep Research & Report Consolidation
 
@@ -61,19 +61,19 @@ The Knowledge Base feature allows you to:
 
 The Flow feature enables deep, recursive research by allowing you to:
 
-- Create visual research flows with interconnected reports
-- Generate follow-up queries based on initial research findings
-- Dive deeper into specific topics through recursive exploration
-- Consolidate multiple related reports into comprehensive final reports
+-   Create visual research flows with interconnected reports
+-   Generate follow-up queries based on initial research findings
+-   Dive deeper into specific topics through recursive exploration
+-   Consolidate multiple related reports into comprehensive final reports
 
 Key capabilities:
 
-- 🌳 **Deep Research Trees**: Start with a topic and automatically generate relevant follow-up questions to explore deeper aspects
-- 🔄 **Recursive Exploration**: Follow research paths down various "rabbit holes" by generating new queries from report insights
-- 🔍 **Visual Research Mapping**: See your entire research journey mapped out visually, showing connections between different research paths
-- 🎯 **Smart Query Generation**: AI-powered generation of follow-up research questions based on report content
-- 🔗 **Report Consolidation**: Select multiple related reports and combine them into a single, comprehensive final report
-- 📊 **Interactive Interface**: Drag, arrange, and organize your research flows visually
+-   🌳 **Deep Research Trees**: Start with a topic and automatically generate relevant follow-up questions to explore deeper aspects
+-   🔄 **Recursive Exploration**: Follow research paths down various "rabbit holes" by generating new queries from report insights
+-   🔍 **Visual Research Mapping**: See your entire research journey mapped out visually, showing connections between different research paths
+-   🎯 **Smart Query Generation**: AI-powered generation of follow-up research questions based on report content
+-   🔗 **Report Consolidation**: Select multiple related reports and combine them into a single, comprehensive final report
+-   📊 **Interactive Interface**: Drag, arrange, and organize your research flows visually
 
 The Flow interface makes it easy to:
 
@@ -86,10 +86,10 @@ The Flow interface makes it easy to:
 
 This feature is perfect for:
 
-- Academic research requiring deep exploration of interconnected topics
-- Market research needing multiple angles of investigation
-- Complex topic analysis requiring recursive deep dives
-- Any research task where you need to "follow the thread" of information
+-   Academic research requiring deep exploration of interconnected topics
+-   Market research needing multiple angles of investigation
+-   Complex topic analysis requiring recursive deep dives
+-   Any research task where you need to "follow the thread" of information
 
 ## Configuration
 
@@ -151,17 +151,17 @@ AZURE_SUB_KEY="your-azure-key"
 
 The Knowledge Base feature allows you to build a personal research library by:
 
-- Saving generated reports with their original search queries
-- Accessing and loading past reports instantly
-- Building a searchable archive of your research
-- Maintaining context across research sessions
+-   Saving generated reports with their original search queries
+-   Accessing and loading past reports instantly
+-   Building a searchable archive of your research
+-   Maintaining context across research sessions
 
 Reports saved to the Knowledge Base include:
 
-- The full report content with all sections
-- Original search query and prompt
-- Source URLs and references
-- Generation timestamp
+-   The full report content with all sections
+-   Original search query and prompt
+-   Source URLs and references
+-   Generation timestamp
 
 You can access your Knowledge Base through the dedicated button in the UI, which opens a sidebar containing all your saved reports.
 
@@ -245,10 +245,10 @@ platforms: {
 
 For each platform:
 
-- `enabled`: Controls whether the platform is available
-- For each model:
-  - `enabled`: Controls whether the specific model is selectable
-  - `label`: The display name shown in the UI
+-   `enabled`: Controls whether the platform is available
+-   For each model:
+    -   `enabled`: Controls whether the specific model is selectable
+    -   `label`: The display name shown in the UI
 
 Disabled models will appear grayed out in the UI but remain visible to show all available options. This allows users to see the full range of available models while clearly indicating which ones are currently accessible.
 
@@ -311,16 +311,16 @@ Local models through Ollama bypass rate limiting since they run on your machine.
 
 ### Prerequisites
 
-- Node.js 20+
-- npm, yarn, pnpm, or bun
+-   Node.js 20+
+-   npm, yarn, pnpm, or bun
 
 ### Installation
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/btahir/open-deep-research
-cd open-deep-research
+git clone https://github.com/btahir/IT-ESC
+cd IT-ESC
 ```
 
 2. Install dependencies:
@@ -397,13 +397,13 @@ If you prefer using Docker, you can build and run the application in a container
 1. Build the Docker image:
 
 ```bash
-docker build -t open-deep-research:v1 .
+docker build -t IT-ESC:v1 .
 ```
 
 2. Run the container:
 
 ```bash
-docker run -p 3000:3000 open-deep-research
+docker run -p 3000:3000 IT-ESC
 ```
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
@@ -422,15 +422,15 @@ You'll need two components to use Google Custom Search:
 
 1. **Get API Key**:
 
-   - Visit [Get a Key](https://developers.google.com/custom-search/v1/introduction) page
-   - Follow the prompts to get your API key
-   - Copy it for the `GOOGLE_SEARCH_API_KEY` environment variable
+    - Visit [Get a Key](https://developers.google.com/custom-search/v1/introduction) page
+    - Follow the prompts to get your API key
+    - Copy it for the `GOOGLE_SEARCH_API_KEY` environment variable
 
 2. **Get Search Engine ID (CX)**:
-   - Visit [Programmable Search Engine Control Panel](https://programmablesearchengine.google.com/controlpanel/create)
-   - Create a new search engine
-   - After creation, find your Search Engine ID in the "Overview" page's "Basic" section
-   - Copy the ID (this is the `cx` parameter) for the `GOOGLE_SEARCH_CX` environment variable
+    - Visit [Programmable Search Engine Control Panel](https://programmablesearchengine.google.com/controlpanel/create)
+    - Create a new search engine
+    - After creation, find your Search Engine ID in the "Overview" page's "Basic" section
+    - Copy the ID (this is the `cx` parameter) for the `GOOGLE_SEARCH_CX` environment variable
 
 #### EXA API Key
 
@@ -481,15 +481,15 @@ You'll need two components to use Google Custom Search:
 
 ## Tech Stack
 
-- [Next.js 15](https://nextjs.org/) - React framework
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
-- [JinaAI](https://jina.ai/) - Content extraction
-- [Azure Bing Search](https://www.microsoft.com/en-us/bing/apis/bing-web-search-api) - Web search
-- [Google Custom Search](https://developers.google.com/custom-search/v1/overview) - Web search
-- [Upstash Redis](https://upstash.com/) - Rate limiting
-- [jsPDF](https://github.com/parallax/jsPDF) & [docx](https://github.com/dolanmiu/docx) - Document generation
+-   [Next.js 15](https://nextjs.org/) - React framework
+-   [TypeScript](https://www.typescriptlang.org/) - Type safety
+-   [Tailwind CSS](https://tailwindcss.com/) - Styling
+-   [shadcn/ui](https://ui.shadcn.com/) - UI components
+-   [JinaAI](https://jina.ai/) - Content extraction
+-   [Azure Bing Search](https://www.microsoft.com/en-us/bing/apis/bing-web-search-api) - Web search
+-   [Google Custom Search](https://developers.google.com/custom-search/v1/overview) - Web search
+-   [Upstash Redis](https://upstash.com/) - Rate limiting
+-   [jsPDF](https://github.com/parallax/jsPDF) & [docx](https://github.com/dolanmiu/docx) - Document generation
 
 The app will use the configured provider (default: Google) for all searches. You can switch providers by updating the `provider` value in the config file.
 
@@ -503,12 +503,12 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-[MIT](https://github.com/btahir/open-deep-research/blob/main/LICENSE)
+[MIT](https://github.com/btahir/IT-ESC/blob/main/LICENSE)
 
 ## Acknowledgments
 
-- Inspired by Google's Gemini Deep Research feature
-- Built with amazing open source tools and APIs
+-   Inspired by Google's Gemini Deep Research feature
+-   Built with amazing open source tools and APIs
 
 ## Follow Me
 
