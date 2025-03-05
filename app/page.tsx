@@ -1545,7 +1545,7 @@ export default function Home() {
 																			section.title
 																		}
 																	</h3>
-																	<div className="prose max-w-none text-white prose-h3:text-blue-300 prose-strong:text-blue-200">
+																	<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
 																		<ReactMarkdown
 																			remarkPlugins={[
 																				remarkGfm,
