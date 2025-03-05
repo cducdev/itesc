@@ -39,6 +39,8 @@ import { ReportActions } from "@/components/report-actions";
 import { ModelSelect, DEFAULT_MODEL } from "@/components/model-select";
 import { handleLocalFile, SUPPORTED_FILE_TYPES } from "@/lib/file-upload";
 import { CitationsFooter } from "@/components/citations-footer";
+import TutorialPopup from "@/components/TutorialPopup";
+import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 const timeFilters = [
 	{ value: "all", label: "Any time" },
@@ -104,6 +106,7 @@ export default function Home() {
 			agentInsights: [],
 			searchQueries: [],
 		},
+		showTutorial: false,
 	});
 
 	const { toast } = useToast();
@@ -909,168 +912,302 @@ export default function Home() {
 					onOpenChange={(open) => updateState({ sidebarOpen: open })}
 				/>
 				<main className="max-w-4xl mx-auto space-y-8">
-					<div className="mb-3">
-						<h1 className="mb-2 text-center text-white flex items-center justify-center gap-2">
-							<img
-								src="/apple-icon.png"
-								alt="IT-ESC"
-								className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
-							/>
-							<span className="text-xl sm:text-3xl font-bold font-heading">
-								IT-ESC
-							</span>
-						</h1>
-						<div className="text-center space-y-3 mb-8">
-							<p className="text-white">
-								Lets research with IT-ESC
-							</p>
-							<div className="flex flex-wrap justify-center items-center gap-2">
-								<Button
-									variant="default"
-									size="sm"
-									onClick={() =>
-										updateState({ sidebarOpen: true })
-									}
-									className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full"
-								>
-									<Brain className="h-4 w-4" />
-									View Knowledge Base
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									size="sm"
-									className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full"
-								></Button>
-							</div>
-							<div className="flex justify-center items-center">
-								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="agent-mode"
-										checked={state.isAgentMode}
-										className="w-4 h-4"
-										onCheckedChange={(checked) =>
-											updateState({
-												isAgentMode: checked as boolean,
-											})
-										}
-									/>
-									<label
-										htmlFor="agent-mode"
-										className="text-xs sm:text-sm font-medium leading-none text-white peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									>
-										Agent Mode (Automatic search and report
-										generation)
-									</label>
-								</div>
-							</div>
-						</div>
-						{state.status.agentStep !== "idle" && (
-							<div className="mb-4 p-4 bg-black rounded-lg">
-								<div className="flex items-center gap-3 mb-3">
-									<Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
-									<h3 className="font-semibold text-blue-400">
-										Agent Progress
-									</h3>
-								</div>
+					<div className="container mx-auto p-4 min-h-screen flex flex-col">
+						<TutorialPopup
+							isOpen={state.showTutorial}
+							onClose={() => updateState({ showTutorial: false })}
+						/>
 
-								<div className="space-y-2">
-									<div className="flex items-center gap-2 text-sm">
-										<span className="font-medium text-blue-400">
-											Current Step:
-										</span>
-										<span className="capitalize text-blue-400">
-											{state.status.agentStep}
-										</span>
+						<div className="mb-3">
+							<h1 className="mb-2 text-center text-white flex items-center justify-center gap-2">
+								<img
+									src="/apple-icon.png"
+									alt="IT-ESC"
+									className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
+								/>
+								<span className="text-xl sm:text-3xl font-bold font-heading">
+									IT-ESC
+								</span>
+							</h1>
+							<div className="text-center space-y-3 mb-8">
+								<p className="text-white">
+									Lets research with IT-ESC
+								</p>
+								<div className="flex flex-wrap justify-center items-center gap-2">
+									<Button
+										variant="default"
+										size="sm"
+										onClick={() =>
+											updateState({ sidebarOpen: true })
+										}
+										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full"
+									>
+										<Brain className="h-4 w-4" />
+										Knowledge Base
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() =>
+											updateState({ showTutorial: true })
+										}
+										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+									>
+										<QuestionMarkCircledIcon className="h-4 w-4" />
+										Hướng dẫn sử dụng
+									</Button>
+								</div>
+								<div className="flex justify-center items-center">
+									<div className="flex items-center space-x-2">
+										<Checkbox
+											id="agent-mode"
+											checked={state.isAgentMode}
+											className="w-4 h-4"
+											onCheckedChange={(checked) =>
+												updateState({
+													isAgentMode:
+														checked as boolean,
+												})
+											}
+										/>
+										<label
+											htmlFor="agent-mode"
+											className="text-xs sm:text-sm font-medium leading-none text-white peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+										>
+											Agent Mode (Automatic search and
+											report generation)
+										</label>
+									</div>
+								</div>
+							</div>
+							{state.status.agentStep !== "idle" && (
+								<div className="mb-4 p-4 bg-black rounded-lg">
+									<div className="flex items-center gap-3 mb-3">
+										<Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+										<h3 className="font-semibold text-blue-400">
+											Agent Progress
+										</h3>
 									</div>
 
-									{state.status.agentInsights.length > 0 && (
-										<Collapsible>
-											<CollapsibleTrigger className="text-sm text-blue-400 hover:underline flex items-center gap-1">
-												Show Research Details{" "}
-												<ChevronDown className="h-4 w-4" />
-											</CollapsibleTrigger>
-											<CollapsibleContent className="mt-2 space-y-2 text-sm text-white">
-												{state.status.agentInsights.map(
-													(insight, idx) => (
-														<div
-															key={idx}
-															className="flex gap-2"
-														>
-															<span className="text-white">
-																•
-															</span>
-															{insight}
-														</div>
-													)
-												)}
-											</CollapsibleContent>
-										</Collapsible>
-									)}
-								</div>
-							</div>
-						)}
-						<form
-							ref={formRef}
-							onSubmit={
-								state.isAgentMode
-									? handleAgentSearch
-									: handleSearch
-							}
-							className="space-y-4"
-						>
-							{!state.isAgentMode ? (
-								<>
-									<div className="flex flex-col sm:flex-row gap-2">
-										<div className="relative flex-1">
-											<Input
-												type="text"
-												value={state.query}
-												onChange={(e) =>
-													updateState({
-														query: e.target.value,
-													})
-												}
-												placeholder="Enter your search query..."
-												className="pr-8 bg-black text-white placeholder-white"
-											/>
-											<Search className="absolute right-2 top-2 h-5 w-5 text-white" />
+									<div className="space-y-2">
+										<div className="flex items-center gap-2 text-sm">
+											<span className="font-medium text-blue-400">
+												Current Step:
+											</span>
+											<span className="capitalize text-blue-400">
+												{state.status.agentStep}
+											</span>
 										</div>
 
-										<div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-											<div className="flex gap-2 w-full sm:w-auto">
-												<Select
-													value={state.timeFilter}
-													onValueChange={(value) =>
+										{state.status.agentInsights.length >
+											0 && (
+											<Collapsible>
+												<CollapsibleTrigger className="text-sm text-blue-400 hover:underline flex items-center gap-1">
+													Show Research Details{" "}
+													<ChevronDown className="h-4 w-4" />
+												</CollapsibleTrigger>
+												<CollapsibleContent className="mt-2 space-y-2 text-sm text-white">
+													{state.status.agentInsights.map(
+														(insight, idx) => (
+															<div
+																key={idx}
+																className="flex gap-2"
+															>
+																<span className="text-white">
+																	•
+																</span>
+																{insight}
+															</div>
+														)
+													)}
+												</CollapsibleContent>
+											</Collapsible>
+										)}
+									</div>
+								</div>
+							)}
+							<form
+								ref={formRef}
+								onSubmit={
+									state.isAgentMode
+										? handleAgentSearch
+										: handleSearch
+								}
+								className="space-y-4"
+							>
+								{!state.isAgentMode ? (
+									<>
+										<div className="flex flex-col sm:flex-row gap-2">
+											<div className="relative flex-1">
+												<Input
+													type="text"
+													value={state.query}
+													onChange={(e) =>
 														updateState({
-															timeFilter: value,
+															query: e.target
+																.value,
 														})
 													}
-												>
-													<SelectTrigger className="flex-1 sm:flex-initial sm:w-[140px] bg-black text-white border-0">
-														<SelectValue placeholder="Select time range" />
-													</SelectTrigger>
-													<SelectContent className="bg-black text-white border-0">
-														{timeFilters.map(
-															(filter) => (
-																<SelectItem
-																	key={
-																		filter.value
-																	}
-																	value={
-																		filter.value
-																	}
-																	className="text-white hover:bg-gray-800"
-																>
-																	{
-																		filter.label
-																	}
-																</SelectItem>
-															)
-														)}
-													</SelectContent>
-												</Select>
+													placeholder="Enter your search query..."
+													className="pr-8 bg-black text-white placeholder-white"
+												/>
+												<Search className="absolute right-2 top-2 h-5 w-5 text-white" />
+											</div>
 
+											<div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+												<div className="flex gap-2 w-full sm:w-auto">
+													<Select
+														value={state.timeFilter}
+														onValueChange={(
+															value
+														) =>
+															updateState({
+																timeFilter:
+																	value,
+															})
+														}
+													>
+														<SelectTrigger className="flex-1 sm:flex-initial sm:w-[140px] bg-black text-white border-0">
+															<SelectValue placeholder="Select time range" />
+														</SelectTrigger>
+														<SelectContent className="bg-black text-white border-0">
+															{timeFilters.map(
+																(filter) => (
+																	<SelectItem
+																		key={
+																			filter.value
+																		}
+																		value={
+																			filter.value
+																		}
+																		className="text-white hover:bg-gray-800"
+																	>
+																		{
+																			filter.label
+																		}
+																	</SelectItem>
+																)
+															)}
+														</SelectContent>
+													</Select>
+
+													<ModelSelect
+														value={
+															state.selectedModel
+														}
+														onValueChange={(
+															value
+														) =>
+															updateState({
+																selectedModel:
+																	value,
+															})
+														}
+														triggerClassName="flex-1 sm:flex-initial sm:w-[200px] bg-black text-white border-0"
+													/>
+												</div>
+
+												<Button
+													type="submit"
+													disabled={
+														state.status.loading
+													}
+													className="w-full sm:w-auto bg-black text-white hover:bg-gray-900"
+												>
+													{state.status.loading
+														? "Searching..."
+														: "Search"}
+												</Button>
+											</div>
+										</div>
+										<div className="flex gap-2">
+											<Input
+												type="url"
+												value={state.newUrl}
+												onChange={(e) =>
+													updateState({
+														newUrl: e.target.value,
+													})
+												}
+												placeholder="Add custom URL..."
+												className="flex-1 bg-black text-white placeholder-white"
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														e.preventDefault();
+														handleAddCustomUrl(e);
+													}
+												}}
+											/>
+											<Button
+												type="button"
+												variant="outline"
+												onClick={handleAddCustomUrl}
+												className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
+											>
+												<Plus className="h-4 w-4" />
+												Add URL
+											</Button>
+											<Button
+												type="button"
+												variant="outline"
+												onClick={handleAddCustomUrl}
+												className="sm:hidden bg-black text-white hover:bg-gray-900 border-0"
+												size="icon"
+											>
+												<Plus className="h-4 w-4" />
+											</Button>
+											<div className="relative">
+												<Input
+													type="file"
+													onChange={handleFileUpload}
+													className="absolute inset-0 opacity-0 cursor-pointer"
+													accept={
+														SUPPORTED_FILE_TYPES
+													}
+												/>
+												<Button
+													type="button"
+													variant="outline"
+													className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
+												>
+													<UploadIcon className="h-4 w-4" />
+													Upload File
+												</Button>
+												<Button
+													type="button"
+													variant="outline"
+													size="icon"
+													className="sm:hidden bg-black text-white hover:bg-gray-900 border-0"
+												>
+													<UploadIcon className="h-4 w-4" />
+												</Button>
+											</div>
+										</div>
+									</>
+								) : (
+									<div className="space-y-4 sm:space-y-6">
+										<div className="relative w-full flex justify-center">
+											<div className="w-full max-w-2xl relative">
+												<Input
+													value={
+														state.query ||
+														state.reportPrompt
+													}
+													onChange={(e) => {
+														updateState({
+															reportPrompt:
+																e.target.value,
+															query: "",
+														});
+													}}
+													placeholder="What would you like to research? (e.g., 'Tesla Q4 2024 financial performance and market impact')"
+													className="pr-8 text-xl bg-black text-white placeholder-white w-full h-14"
+												/>
+												<Brain className="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 text-white" />
+											</div>
+										</div>
+										<div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-center">
+											<div className="w-full sm:w-[200px]">
 												<ModelSelect
 													value={state.selectedModel}
 													onValueChange={(value) =>
@@ -1079,265 +1216,235 @@ export default function Home() {
 																value,
 														})
 													}
-													triggerClassName="flex-1 sm:flex-initial sm:w-[200px] bg-black text-white border-0"
+													triggerClassName="w-full sm:w-[200px] bg-black text-white border-0"
 												/>
 											</div>
-
 											<Button
 												type="submit"
-												disabled={state.status.loading}
-												className="w-full sm:w-auto bg-black text-white hover:bg-gray-900"
-											>
-												{state.status.loading
-													? "Searching..."
-													: "Search"}
-											</Button>
-										</div>
-									</div>
-									<div className="flex gap-2">
-										<Input
-											type="url"
-											value={state.newUrl}
-											onChange={(e) =>
-												updateState({
-													newUrl: e.target.value,
-												})
-											}
-											placeholder="Add custom URL..."
-											className="flex-1 bg-black text-white placeholder-white"
-											onKeyDown={(e) => {
-												if (e.key === "Enter") {
-													e.preventDefault();
-													handleAddCustomUrl(e);
-												}
-											}}
-										/>
-										<Button
-											type="button"
-											variant="outline"
-											onClick={handleAddCustomUrl}
-											className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
-										>
-											<Plus className="h-4 w-4" />
-											Add URL
-										</Button>
-										<Button
-											type="button"
-											variant="outline"
-											onClick={handleAddCustomUrl}
-											className="sm:hidden bg-black text-white hover:bg-gray-900 border-0"
-											size="icon"
-										>
-											<Plus className="h-4 w-4" />
-										</Button>
-										<div className="relative">
-											<Input
-												type="file"
-												onChange={handleFileUpload}
-												className="absolute inset-0 opacity-0 cursor-pointer"
-												accept={SUPPORTED_FILE_TYPES}
-											/>
-											<Button
-												type="button"
-												variant="outline"
-												className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
-											>
-												<UploadIcon className="h-4 w-4" />
-												Upload File
-											</Button>
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
-												className="sm:hidden bg-black text-white hover:bg-gray-900 border-0"
-											>
-												<UploadIcon className="h-4 w-4" />
-											</Button>
-										</div>
-									</div>
-								</>
-							) : (
-								<div className="space-y-4 sm:space-y-6">
-									<div className="relative w-full flex justify-center">
-										<div className="w-full max-w-2xl relative">
-											<Input
-												value={
-													state.query ||
-													state.reportPrompt
-												}
-												onChange={(e) => {
-													updateState({
-														reportPrompt:
-															e.target.value,
-														query: "",
-													});
-												}}
-												placeholder="What would you like to research? (e.g., 'Tesla Q4 2024 financial performance and market impact')"
-												className="pr-8 text-xl bg-black text-white placeholder-white w-full h-14"
-											/>
-											<Brain className="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 text-white" />
-										</div>
-									</div>
-									<div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-center">
-										<div className="w-full sm:w-[200px]">
-											<ModelSelect
-												value={state.selectedModel}
-												onValueChange={(value) =>
-													updateState({
-														selectedModel: value,
-													})
-												}
-												triggerClassName="w-full sm:w-[200px] bg-black text-white border-0"
-											/>
-										</div>
-										<Button
-											type="submit"
-											disabled={
-												state.status.agentStep !==
-												"idle"
-											}
-											className="w-full sm:w-auto lg:w-[200px] bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
-										>
-											{state.status.agentStep !==
-											"idle" ? (
-												<span className="flex items-center gap-2">
-													<Loader2 className="h-4 w-4 animate-spin" />
-													{
-														{
-															processing:
-																"Planning Research...",
-															searching:
-																"Searching Web...",
-															analyzing:
-																"Analyzing Results...",
-															generating:
-																"Writing Report...",
-														}[
-															state.status
-																.agentStep
-														]
-													}
-												</span>
-											) : (
-												"Start Deep Research"
-											)}
-										</Button>
-									</div>
-								</div>
-							)}
-						</form>
-					</div>
-
-					<Separator className="my-8" />
-
-					{state.error && (
-						<div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
-							<div className="flex items-center gap-2 text-red-700">
-								<div>
-									<h3 className="font-semibold">Error</h3>
-									<p className="text-sm">{state.error}</p>
-								</div>
-							</div>
-						</div>
-					)}
-
-					{state.results.length > 0 && (
-						<Tabs
-							value={state.activeTab}
-							onValueChange={(value) =>
-								updateState({ activeTab: value })
-							}
-							className="w-full"
-						>
-							<div className="mb-6 space-y-4">
-								{state.selectedResults.length > 0 &&
-									!state.isAgentMode && (
-										<div className="flex flex-col sm:flex-row gap-2">
-											<div className="relative flex-1">
-												<Input
-													value={state.reportPrompt}
-													onChange={(e) =>
-														updateState({
-															reportPrompt:
-																e.target.value,
-														})
-													}
-													placeholder="What would you like to know about these sources? (e.g., 'Compare and analyze the key points')"
-													className="pr-8 bg-black text-white placeholder-white"
-												/>
-												<FileText className="absolute right-2 top-2.5 h-5 w-5 text-white" />
-											</div>
-											<Button
-												onClick={generateReport}
 												disabled={
-													!state.reportPrompt.trim() ||
-													state.status
-														.generatingReport ||
-													!state.selectedModel
+													state.status.agentStep !==
+													"idle"
 												}
-												type="button"
-												className="w-full sm:w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white"
+												className="w-full sm:w-auto lg:w-[200px] bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
 											>
-												{state.status
-													.generatingReport ? (
+												{state.status.agentStep !==
+												"idle" ? (
 													<span className="flex items-center gap-2">
 														<Loader2 className="h-4 w-4 animate-spin" />
-														Generating...
+														{
+															{
+																processing:
+																	"Planning Research...",
+																searching:
+																	"Searching Web...",
+																analyzing:
+																	"Analyzing Results...",
+																generating:
+																	"Writing Report...",
+															}[
+																state.status
+																	.agentStep
+															]
+														}
 													</span>
 												) : (
-													"Generate Report"
+													"Start Deep Research"
 												)}
 											</Button>
 										</div>
-									)}
-								<div className="text-center sm:text-left">
-									<p className="text-base font-medium bg-blue-600/20 inline-block px-3 py-1.5 rounded-full">
-										{state.selectedResults.length === 0
-											? "Select up to 3 results to generate a report"
-											: state.selectedModel
-											? `${state.selectedResults.length} of ${MAX_SELECTIONS} results selected`
-											: "Please select a model above to generate a report"}
-									</p>
-									{state.status.generatingReport && (
-										<p className="mt-2 text-sm text-blue-400">
-											{
-												state.status.fetchStatus
-													.successful
-											}{" "}
-											fetched,{" "}
-											{state.status.fetchStatus.fallback}{" "}
-											failed (of{" "}
-											{state.status.fetchStatus.total})
-										</p>
-									)}
-								</div>
-								<TabsList className="grid w-full grid-cols-2 mb-4 bg-black">
-									<TabsTrigger
-										value="search"
-										className="text-white data-[state=active]:bg-blue-600"
-									>
-										Search Results
-									</TabsTrigger>
-									<TabsTrigger
-										value="report"
-										disabled={!state.report}
-										className="text-white data-[state=active]:bg-blue-600"
-									>
-										Report
-									</TabsTrigger>
-								</TabsList>
+									</div>
+								)}
+							</form>
+						</div>
 
-								<TabsContent
-									value="search"
-									className="space-y-4"
-								>
-									{!state.isAgentMode &&
-										state.results
-											.filter((r) => r.isCustomUrl)
+						<Separator className="my-8" />
+
+						{state.error && (
+							<div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
+								<div className="flex items-center gap-2 text-red-700">
+									<div>
+										<h3 className="font-semibold">Error</h3>
+										<p className="text-sm">{state.error}</p>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{state.results.length > 0 && (
+							<Tabs
+								value={state.activeTab}
+								onValueChange={(value) =>
+									updateState({ activeTab: value })
+								}
+								className="w-full"
+							>
+								<div className="mb-6 space-y-4">
+									{state.selectedResults.length > 0 &&
+										!state.isAgentMode && (
+											<div className="flex flex-col sm:flex-row gap-2">
+												<div className="relative flex-1">
+													<Input
+														value={
+															state.reportPrompt
+														}
+														onChange={(e) =>
+															updateState({
+																reportPrompt:
+																	e.target
+																		.value,
+															})
+														}
+														placeholder="What would you like to know about these sources? (e.g., 'Compare and analyze the key points')"
+														className="pr-8 bg-black text-white placeholder-white"
+													/>
+													<FileText className="absolute right-2 top-2.5 h-5 w-5 text-white" />
+												</div>
+												<Button
+													onClick={generateReport}
+													disabled={
+														!state.reportPrompt.trim() ||
+														state.status
+															.generatingReport ||
+														!state.selectedModel
+													}
+													type="button"
+													className="w-full sm:w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white"
+												>
+													{state.status
+														.generatingReport ? (
+														<span className="flex items-center gap-2">
+															<Loader2 className="h-4 w-4 animate-spin" />
+															Generating...
+														</span>
+													) : (
+														"Generate Report"
+													)}
+												</Button>
+											</div>
+										)}
+									<div className="text-center sm:text-left">
+										<p className="text-base font-medium bg-blue-600/20 inline-block px-3 py-1.5 rounded-full">
+											{state.selectedResults.length === 0
+												? "Select up to 3 results to generate a report"
+												: state.selectedModel
+												? `${state.selectedResults.length} of ${MAX_SELECTIONS} results selected`
+												: "Please select a model above to generate a report"}
+										</p>
+										{state.status.generatingReport && (
+											<p className="mt-2 text-sm text-blue-400">
+												{
+													state.status.fetchStatus
+														.successful
+												}{" "}
+												fetched,{" "}
+												{
+													state.status.fetchStatus
+														.fallback
+												}{" "}
+												failed (of{" "}
+												{state.status.fetchStatus.total}
+												)
+											</p>
+										)}
+									</div>
+									<TabsList className="grid w-full grid-cols-2 mb-4 bg-black">
+										<TabsTrigger
+											value="search"
+											className="text-white data-[state=active]:bg-blue-600"
+										>
+											Search Results
+										</TabsTrigger>
+										<TabsTrigger
+											value="report"
+											disabled={!state.report}
+											className="text-white data-[state=active]:bg-blue-600"
+										>
+											Report
+										</TabsTrigger>
+									</TabsList>
+
+									<TabsContent
+										value="search"
+										className="space-y-4"
+									>
+										{!state.isAgentMode &&
+											state.results
+												.filter((r) => r.isCustomUrl)
+												.map((result) => (
+													<Card
+														key={result.id}
+														className="overflow-hidden border-2 border-blue-100 bg-black"
+													>
+														<CardContent className="p-4 flex gap-4">
+															<div className="pt-1">
+																<Checkbox
+																	checked={state.selectedResults.includes(
+																		result.id
+																	)}
+																	onCheckedChange={() =>
+																		handleResultSelect(
+																			result.id
+																		)
+																	}
+																	disabled={
+																		!state.selectedResults.includes(
+																			result.id
+																		) &&
+																		state
+																			.selectedResults
+																			.length >=
+																			MAX_SELECTIONS
+																	}
+																/>
+															</div>
+															<div className="flex-1 min-w-0">
+																<div className="flex justify-between items-start">
+																	<a
+																		href={
+																			result.url
+																		}
+																		target="_blank"
+																		rel="noopener noreferrer"
+																		className="text-blue-400 hover:underline"
+																	>
+																		<h2 className="text-xl font-semibold truncate">
+																			{
+																				result.name
+																			}
+																		</h2>
+																	</a>
+																	<Button
+																		variant="ghost"
+																		size="sm"
+																		onClick={() =>
+																			handleRemoveResult(
+																				result.id
+																			)
+																		}
+																		className="ml-2 text-white"
+																	>
+																		<X className="h-4 w-4" />
+																	</Button>
+																</div>
+																<p className="text-green-400 text-sm truncate">
+																	{result.url}
+																</p>
+																<p className="mt-1 text-white line-clamp-2">
+																	{
+																		result.snippet
+																	}
+																</p>
+															</div>
+														</CardContent>
+													</Card>
+												))}
+
+										{state.results
+											.filter((r) => !r.isCustomUrl)
 											.map((result) => (
 												<Card
 													key={result.id}
-													className="overflow-hidden border-2 border-blue-100 bg-black"
+													className="overflow-hidden bg-black"
 												>
 													<CardContent className="p-4 flex gap-4">
 														<div className="pt-1">
@@ -1362,174 +1469,118 @@ export default function Home() {
 															/>
 														</div>
 														<div className="flex-1 min-w-0">
-															<div className="flex justify-between items-start">
+															<h2 className="text-xl font-semibold truncate text-blue-400 hover:underline">
 																<a
 																	href={
 																		result.url
 																	}
 																	target="_blank"
 																	rel="noopener noreferrer"
-																	className="text-blue-400 hover:underline"
-																>
-																	<h2 className="text-xl font-semibold truncate">
-																		{
-																			result.name
-																		}
-																	</h2>
-																</a>
-																<Button
-																	variant="ghost"
-																	size="sm"
-																	onClick={() =>
-																		handleRemoveResult(
-																			result.id
-																		)
-																	}
-																	className="ml-2 text-white"
-																>
-																	<X className="h-4 w-4" />
-																</Button>
-															</div>
+																	dangerouslySetInnerHTML={{
+																		__html: result.name,
+																	}}
+																/>
+															</h2>
 															<p className="text-green-400 text-sm truncate">
 																{result.url}
 															</p>
-															<p className="mt-1 text-white line-clamp-2">
-																{result.snippet}
-															</p>
+															<p
+																className="mt-1 text-white line-clamp-2"
+																dangerouslySetInnerHTML={{
+																	__html: result.snippet,
+																}}
+															/>
 														</div>
 													</CardContent>
 												</Card>
 											))}
+									</TabsContent>
 
-									{state.results
-										.filter((r) => !r.isCustomUrl)
-										.map((result) => (
-											<Card
-												key={result.id}
-												className="overflow-hidden bg-black"
-											>
-												<CardContent className="p-4 flex gap-4">
-													<div className="pt-1">
-														<Checkbox
-															checked={state.selectedResults.includes(
-																result.id
-															)}
-															onCheckedChange={() =>
-																handleResultSelect(
-																	result.id
-																)
+									<TabsContent value="report">
+										{state.report && (
+											<Card className="bg-black border-0">
+												<CardContent className="p-6 space-y-4">
+													<div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-4">
+														<h2 className="text-2xl font-bold text-blue-400 text-center sm:text-left">
+															{
+																state.report
+																	?.title
 															}
-															disabled={
-																!state.selectedResults.includes(
-																	result.id
-																) &&
-																state
-																	.selectedResults
-																	.length >=
-																	MAX_SELECTIONS
+														</h2>
+														<ReportActions
+															report={
+																state.report
+															}
+															prompt={
+																state.reportPrompt
 															}
 														/>
 													</div>
-													<div className="flex-1 min-w-0">
-														<h2 className="text-xl font-semibold truncate text-blue-400 hover:underline">
-															<a
-																href={
-																	result.url
-																}
-																target="_blank"
-																rel="noopener noreferrer"
-																dangerouslySetInnerHTML={{
-																	__html: result.name,
-																}}
-															/>
-														</h2>
-														<p className="text-green-400 text-sm truncate">
-															{result.url}
+
+													<div
+														className="max-h-[800px] overflow-y-auto pr-2"
+														style={{
+															scrollbarWidth:
+																"thin",
+														}}
+													>
+														<p className="text-lg text-blue-400 mb-6">
+															{
+																state.report
+																	?.summary
+															}
 														</p>
-														<p
-															className="mt-1 text-white line-clamp-2"
-															dangerouslySetInnerHTML={{
-																__html: result.snippet,
-															}}
-														/>
+
+														{state.report?.sections?.map(
+															(
+																section,
+																index
+															) => (
+																<div
+																	key={index}
+																	className="space-y-3 border-t border-gray-800 pt-4 mb-6"
+																>
+																	<h3 className="text-xl font-semibold text-blue-400">
+																		{
+																			section.title
+																		}
+																	</h3>
+																	<div className="prose max-w-none text-white prose-h3:text-blue-300 prose-strong:text-blue-200">
+																		<ReactMarkdown
+																			remarkPlugins={[
+																				remarkGfm,
+																			]}
+																		>
+																			{
+																				section.content
+																			}
+																		</ReactMarkdown>
+																	</div>
+																</div>
+															)
+														)}
+
+														{/* Citations Section */}
+														{state.report && (
+															<div className="mt-8 pt-4 border-t border-gray-800">
+																<div className="text-blue-400">
+																	<CitationsFooter
+																		report={
+																			state.report
+																		}
+																	/>
+																</div>
+															</div>
+														)}
 													</div>
 												</CardContent>
 											</Card>
-										))}
-								</TabsContent>
-
-								<TabsContent value="report">
-									{state.report && (
-										<Card className="bg-black border-0">
-											<CardContent className="p-6 space-y-4">
-												<div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-4">
-													<h2 className="text-2xl font-bold text-blue-400 text-center sm:text-left">
-														{state.report?.title}
-													</h2>
-													<ReportActions
-														report={state.report}
-														prompt={
-															state.reportPrompt
-														}
-													/>
-												</div>
-
-												<div
-													className="max-h-[800px] overflow-y-auto pr-2"
-													style={{
-														scrollbarWidth: "thin",
-													}}
-												>
-													<p className="text-lg text-blue-400 mb-6">
-														{state.report?.summary}
-													</p>
-
-													{state.report?.sections?.map(
-														(section, index) => (
-															<div
-																key={index}
-																className="space-y-3 border-t border-gray-800 pt-4 mb-6"
-															>
-																<h3 className="text-xl font-semibold text-blue-400">
-																	{
-																		section.title
-																	}
-																</h3>
-																<div className="prose max-w-none text-white prose-h3:text-blue-300 prose-strong:text-blue-200">
-																	<ReactMarkdown
-																		remarkPlugins={[
-																			remarkGfm,
-																		]}
-																	>
-																		{
-																			section.content
-																		}
-																	</ReactMarkdown>
-																</div>
-															</div>
-														)
-													)}
-
-													{/* Citations Section */}
-													{state.report && (
-														<div className="mt-8 pt-4 border-t border-gray-800">
-															<div className="text-blue-400">
-																<CitationsFooter
-																	report={
-																		state.report
-																	}
-																/>
-															</div>
-														</div>
-													)}
-												</div>
-											</CardContent>
-										</Card>
-									)}
-								</TabsContent>
-							</div>
-						</Tabs>
-					)}
+										)}
+									</TabsContent>
+								</div>
+							</Tabs>
+						)}
+					</div>
 				</main>
 			</div>
 		</div>
