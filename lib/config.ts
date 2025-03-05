@@ -52,15 +52,15 @@ export const CONFIG = {
 			enabled: true,
 			models: {
 				"gpt-4o": {
-					enabled: true,
+					enabled: false,
 					label: "GPT-4o",
 				},
 				"o1-mini": {
-					enabled: true,
+					enabled: false,
 					label: "o1-mini",
 				},
 				o1: {
-					enabled: true,
+					enabled: false,
 					label: "o1",
 				},
 			},
@@ -68,13 +68,13 @@ export const CONFIG = {
 		anthropic: {
 			enabled: true,
 			models: {
-				"sonnet-3.5": {
+				"claude-3-7-sonnet-latest": {
 					enabled: false,
-					label: "Claude 3 Sonnet",
+					label: "Claude 3.7 Sonnet",
 				},
-				"haiku-3.5": {
+				"claude-3-5-haiku-latest": {
 					enabled: false,
-					label: "Claude 3 Haiku",
+					label: "Claude 3.5 Haiku",
 				},
 			},
 		},
