@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
-import { Download, Upload, Info, Database, AlertTriangle } from "lucide-react";
+import { Download, Upload, Info, Database } from "lucide-react";
+import type { FlowProject } from "@/hooks/use-flow-projects";
+import type { StorageInfo } from "@/hooks/use-flow-projects";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -25,16 +27,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 interface ProjectActionsProps {
-	exportProjects: () => string;
-	importProjects: (jsonData: string) => boolean;
-	storageInfo: {
-		usage: number;
-		usagePercent: number;
-		available: number;
-		limit: number;
-		formattedUsage: string;
-		formattedAvailable: string;
-	};
+	exportProjects: () => void;
+	importProjects: (projects: FlowProject[]) => void;
+	storageInfo: StorageInfo;
 	refreshStorageInfo: () => void;
 }
 
@@ -50,28 +45,7 @@ export function ProjectActions({
 
 	const handleExport = () => {
 		try {
-			const jsonData = exportProjects();
-			if (jsonData === "[]") {
-				toast({
-					title: "No projects to export",
-					description: "You don't have any projects saved to export.",
-					variant: "destructive",
-				});
-				return;
-			}
-
-			const blob = new Blob([jsonData], { type: "application/json" });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `IT-ESC-projects-${
-				new Date().toISOString().split("T")[0]
-			}.json`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-
+			exportProjects();
 			toast({
 				title: "Projects exported",
 				description: "Your projects have been exported successfully.",
@@ -100,27 +74,19 @@ export function ProjectActions({
 		reader.onload = (event) => {
 			try {
 				const jsonData = event.target?.result as string;
-				const success = importProjects(jsonData);
-
-				if (success) {
-					toast({
-						title: "Projects imported",
-						description:
-							"Your projects have been imported successfully.",
-					});
-					refreshStorageInfo();
-				} else {
-					toast({
-						title: "Import failed",
-						description: "The file format is invalid or corrupted.",
-						variant: "destructive",
-					});
-				}
+				const projects = JSON.parse(jsonData) as FlowProject[];
+				importProjects(projects);
+				toast({
+					title: "Projects imported",
+					description:
+						"Your projects have been imported successfully.",
+				});
+				refreshStorageInfo();
 			} catch (error) {
 				console.error("Import error:", error);
 				toast({
 					title: "Import failed",
-					description: "There was an error importing your projects.",
+					description: "The file format is invalid or corrupted.",
 					variant: "destructive",
 				});
 			}
@@ -134,10 +100,19 @@ export function ProjectActions({
 		}
 	};
 
-	const getStorageStatusColor = (percent: number) => {
+	const getStorageStatusColor = (size: number, limit: number) => {
+		const percent = (size / limit) * 100;
 		if (percent < 50) return "bg-green-500";
 		if (percent < 80) return "bg-yellow-500";
 		return "bg-red-500";
+	};
+
+	const formatBytes = (bytes: number) => {
+		if (bytes === 0) return "0 Bytes";
+		const k = 1024;
+		const sizes = ["Bytes", "KB", "MB"];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 	};
 
 	return (
@@ -178,17 +153,23 @@ export function ProjectActions({
 						<div className="px-3 py-2">
 							<div className="text-xs text-gray-500 mb-1 flex justify-between">
 								<span>Storage Usage</span>
-								<span>{storageInfo.formattedUsage} / 5 MB</span>
+								<span>
+									{formatBytes(storageInfo.totalSize)} /{" "}
+									{formatBytes(storageInfo.limit)}
+								</span>
 							</div>
 							<div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
 								<div
 									className={`h-full ${getStorageStatusColor(
-										storageInfo.usagePercent
+										storageInfo.totalSize,
+										storageInfo.limit
 									)}`}
 									style={{
 										width: `${Math.min(
 											100,
-											storageInfo.usagePercent
+											(storageInfo.totalSize /
+												storageInfo.limit) *
+												100
 										)}%`,
 									}}
 								/>
@@ -238,7 +219,7 @@ export function ProjectActions({
 			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>localStorage Usage</DialogTitle>
+						<DialogTitle>Storage Information</DialogTitle>
 						<DialogDescription>
 							Your research projects are stored in your
 							browser&apos;s localStorage
@@ -248,44 +229,22 @@ export function ProjectActions({
 					<div className="mt-4 space-y-4">
 						<div>
 							<div className="flex justify-between text-sm mb-1">
-								<span>Storage Usage</span>
-								<span>{storageInfo.formattedUsage} / 5 MB</span>
+								<span>Total Size:</span>
+								<span>
+									{formatBytes(storageInfo.totalSize)}
+								</span>
 							</div>
-							<div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-								<div
-									className={`h-full ${getStorageStatusColor(
-										storageInfo.usagePercent
-									)}`}
-									style={{
-										width: `${Math.min(
-											100,
-											storageInfo.usagePercent
-										)}%`,
-									}}
-								/>
+							<div className="flex justify-between text-sm mb-1">
+								<span>Project Count:</span>
+								<span>{storageInfo.projectCount}</span>
+							</div>
+							<div className="flex justify-between text-sm mb-1">
+								<span>Storage Limit:</span>
+								<span>{formatBytes(storageInfo.limit)}</span>
 							</div>
 						</div>
 
-						{storageInfo.usagePercent > 80 && (
-							<div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-								<AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-								<div className="text-sm text-amber-800">
-									<p className="font-medium">
-										Storage is running low
-									</p>
-									<p>
-										Consider exporting and deleting some
-										projects to free up space.
-									</p>
-								</div>
-							</div>
-						)}
-
 						<div className="text-sm space-y-2">
-							<p>
-								<strong>Available Space:</strong>{" "}
-								{storageInfo.formattedAvailable}
-							</p>
 							<p>
 								<strong>Note:</strong> localStorage has a limit
 								of approximately 5MB per domain. Data is stored

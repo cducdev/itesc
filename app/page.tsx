@@ -26,7 +26,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import type { SearchResult, RankingResult, Status, State } from "@/types";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { CONFIG } from "@/lib/config";
 import {
 	Collapsible,
@@ -446,7 +445,6 @@ export default function Home() {
 			handleError,
 			updateStatus,
 			updateState,
-			toast,
 		]
 	);
 
@@ -1565,11 +1563,7 @@ export default function Home() {
 																		}
 																	</h3>
 																	<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
-																		<ReactMarkdown
-																			remarkPlugins={[
-																				remarkGfm,
-																			]}
-																		>
+																		<ReactMarkdown>
 																			{
 																				section.content
 																			}

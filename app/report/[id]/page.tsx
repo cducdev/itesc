@@ -1,6 +1,11 @@
-import React from 'react'
-import { ReportContent } from './report-content'
+import React from "react";
+import { ReportContent } from "./report-content";
 
-export default function ReportPage({ params }: any) {
-  return <ReportContent id={params.id} />
+export default async function ReportPage({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}) {
+	const kbID = await params;
+	return <ReportContent id={kbID.id} />;
 }

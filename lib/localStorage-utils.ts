@@ -1,5 +1,8 @@
-import type { Viewport } from "@xyflow/react";
+import type { Node, Edge, Viewport } from "@xyflow/react";
 import type { FlowProject } from "@/hooks/use-flow-projects";
+
+// Kiểm tra xem có đang ở môi trường trình duyệt không
+const isClient = typeof window !== "undefined";
 
 /**
  * Gets the current localStorage usage in bytes and as a percentage of the available space
@@ -185,15 +188,22 @@ export function createDebouncedViewportSave(
 	) => void,
 	debounceTime: number = 500
 ): () => void {
-	return debounce(() => {
-		saveViewportToProject(project, getViewport(), updateProject);
-	}, debounceTime);
+	if (!isClient) return () => {};
+	let timeoutId: NodeJS.Timeout;
+
+	return () => {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => {
+			const viewport = getViewport();
+			updateProject({ viewport });
+		}, debounceTime);
+	};
 }
 
 /**
  * Saves nodes to the current project
  */
-export function saveNodesToProject<NodeType extends { id: string }>(
+export function saveNodesToProject<NodeType extends Node>(
 	project: FlowProject | null,
 	nodes: NodeType[],
 	updateProject: (
@@ -204,7 +214,7 @@ export function saveNodesToProject<NodeType extends { id: string }>(
 
 	try {
 		updateProject({
-			nodes: nodes as any[],
+			nodes: nodes as Node[],
 		});
 		console.log(`Nodes saved for project: ${project.name}`);
 	} catch (error) {
@@ -215,7 +225,7 @@ export function saveNodesToProject<NodeType extends { id: string }>(
 /**
  * Saves edges to the current project
  */
-export function saveEdgesToProject<EdgeType extends { id: string }>(
+export function saveEdgesToProject<EdgeType extends Edge>(
 	project: FlowProject | null,
 	edges: EdgeType[],
 	updateProject: (
@@ -226,7 +236,7 @@ export function saveEdgesToProject<EdgeType extends { id: string }>(
 
 	try {
 		updateProject({
-			edges: edges as any[],
+			edges: edges as Edge[],
 		});
 		console.log(`Edges saved for project: ${project.name}`);
 	} catch (error) {
@@ -237,7 +247,7 @@ export function saveEdgesToProject<EdgeType extends { id: string }>(
 /**
  * Creates a debounced nodes save function
  */
-export function createDebouncedNodesSave<NodeType extends { id: string }>(
+export function createDebouncedNodesSave<NodeType extends Node>(
 	getNodes: () => NodeType[],
 	project: FlowProject | null,
 	updateProject: (
@@ -245,15 +255,22 @@ export function createDebouncedNodesSave<NodeType extends { id: string }>(
 	) => void,
 	debounceTime: number = 500
 ): () => void {
-	return debounce(() => {
-		saveNodesToProject(project, getNodes(), updateProject);
-	}, debounceTime);
+	if (!isClient) return () => {};
+	let timeoutId: NodeJS.Timeout;
+
+	return () => {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => {
+			const nodes = getNodes();
+			updateProject({ nodes: nodes as Node[] });
+		}, debounceTime);
+	};
 }
 
 /**
  * Creates a debounced edges save function
  */
-export function createDebouncedEdgesSave<EdgeType extends { id: string }>(
+export function createDebouncedEdgesSave<EdgeType extends Edge>(
 	getEdges: () => EdgeType[],
 	project: FlowProject | null,
 	updateProject: (
@@ -261,7 +278,14 @@ export function createDebouncedEdgesSave<EdgeType extends { id: string }>(
 	) => void,
 	debounceTime: number = 500
 ): () => void {
-	return debounce(() => {
-		saveEdgesToProject(project, getEdges(), updateProject);
-	}, debounceTime);
+	if (!isClient) return () => {};
+	let timeoutId: NodeJS.Timeout;
+
+	return () => {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => {
+			const edges = getEdges();
+			updateProject({ edges: edges as Edge[] });
+		}, debounceTime);
+	};
 }

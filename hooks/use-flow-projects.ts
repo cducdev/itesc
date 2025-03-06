@@ -1,462 +1,234 @@
-import { useState, useEffect } from "react";
-import type { Node, Edge } from "@xyflow/react";
-import {
-	getLocalStorageUsage,
-	formatBytes,
-	exportFlowProjects,
-	importFlowProjects,
-} from "@/lib/localStorage-utils";
+import { useState, useEffect, useCallback } from "react";
+import type { Node, Edge, Viewport } from "@xyflow/react";
+
+const isClient = typeof window !== "undefined";
+const LOCAL_STORAGE_KEY = "IT-ESC-flow-projects";
+const CURRENT_PROJECT_KEY = "IT-ESC-current-project";
 
 export interface FlowProject {
 	id: string;
 	name: string;
-	createdAt: string;
-	updatedAt: string;
 	nodes: Node[];
 	edges: Edge[];
 	query: string;
 	selectedReports: string[];
-	viewport?: {
-		x: number;
-		y: number;
-		zoom: number;
-	};
+	viewport?: Viewport;
+	createdAt: number;
+	updatedAt: number;
 }
 
-interface StorageInfo {
-	usage: number;
-	usagePercent: number;
-	available: number;
+export interface StorageInfo {
+	totalSize: number;
+	projectCount: number;
 	limit: number;
-	formattedUsage: string;
-	formattedAvailable: string;
 }
 
-interface UseFlowProjectsReturn {
-	projects: FlowProject[];
-	currentProject: FlowProject | null;
-	setCurrentProject: (project: FlowProject) => void;
-	createProject: (name: string) => FlowProject;
-	updateCurrentProject: (
-		data: Partial<Omit<FlowProject, "id" | "createdAt">>
-	) => void;
-	deleteProject: (id: string) => void;
-	saveCurrentState: (
-		nodes: Node[],
-		edges: Edge[],
-		query: string,
-		selectedReports?: string[]
-	) => void;
-	exportProjects: () => string;
-	importProjects: (jsonData: string) => boolean;
-	storageInfo: StorageInfo;
-	refreshStorageInfo: () => void;
-	saveDirect: () => void;
-	simpleSave: (
-		nodes: Node[],
-		edges: Edge[],
-		query: string,
-		selectedReports?: string[]
-	) => void;
-}
+// Helper function to safely parse JSON
+const safeJSONParse = (str: string | null, fallback: any = null) => {
+	if (!str) return fallback;
+	try {
+		return JSON.parse(str);
+	} catch (e) {
+		console.error("Error parsing JSON:", e);
+		return fallback;
+	}
+};
 
-const LOCAL_STORAGE_KEY = "IT-ESC-flow-projects";
-const CURRENT_PROJECT_KEY = "IT-ESC-current-project";
-
-export function useFlowProjects(): UseFlowProjectsReturn {
+export const useFlowProjects = () => {
 	const [projects, setProjects] = useState<FlowProject[]>([]);
 	const [currentProject, setCurrentProject] = useState<FlowProject | null>(
 		null
 	);
-	const [storageInfo, setStorageInfo] = useState<StorageInfo>(() => {
-		const info = getLocalStorageUsage();
-		return {
-			...info,
-			formattedUsage: formatBytes(info.usage),
-			formattedAvailable: formatBytes(info.available),
-		};
+	const [storageInfo, setStorageInfo] = useState<StorageInfo>({
+		totalSize: 0,
+		projectCount: 0,
+		limit: 5 * 1024 * 1024, // 5MB limit
 	});
 
-	// Save current state with preprocessing for loading states and debug logging
-	const saveCurrentState = (
-		nodes: Node[],
-		edges: Edge[],
-		query: string,
-		selectedReports: string[] = []
-	) => {
-		// Just save everything directly without any complicated processing
-		if (currentProject) {
-			// Get all report nodes
-			const reportNodes = nodes.filter(
-				(node) => node.type === "reportNode"
-			);
-
-			// Update the current project
-			const updatedData = {
-				nodes,
-				edges,
-				query,
-				selectedReports,
-			};
-
-			// Update React state
-			updateCurrentProject(updatedData);
-
-			// Also directly save to localStorage
-			const updatedProject = {
-				...currentProject,
-				...updatedData,
-				updatedAt: new Date().toISOString(),
-			};
-
-			const updatedProjects = projects.map((p) =>
-				p.id === currentProject.id ? updatedProject : p
-			);
-
-			// Save directly to localStorage
-			localStorage.setItem(
-				LOCAL_STORAGE_KEY,
-				JSON.stringify(updatedProjects)
-			);
-		} else if (
-			nodes.length > 0 ||
-			edges.length > 0 ||
-			selectedReports.length > 0
-		) {
-			// Create a default project if we have any data but no current project
-			const newProject = createProject("My Research Project");
-			const updatedData = {
-				nodes,
-				edges,
-				query,
-				selectedReports,
-			};
-
-			updateCurrentProject(updatedData);
-
-			// Also directly save to localStorage
-			const updatedProject = {
-				...newProject,
-				...updatedData,
-				updatedAt: new Date().toISOString(),
-			};
-
-			const updatedProjects = [...projects, updatedProject];
-
-			// Save directly to localStorage
-			localStorage.setItem(
-				LOCAL_STORAGE_KEY,
-				JSON.stringify(updatedProjects)
-			);
-			console.log(
-				"Created new project and saved directly to localStorage"
-			);
-		}
-	};
-
-	// Helper function to postprocess nodes after loading to ensure proper state
-	const postprocessLoadedNodes = (nodes: Node[]): Node[] => {
-		return nodes.map((node) => {
-			// Create a deep copy to avoid mutating the original
-			const nodeCopy = JSON.parse(JSON.stringify(node));
-
-			// Set appropriate loading states for report and question nodes
-			if (nodeCopy.type === "reportNode") {
-				// In our application, the report data is stored in data.report object
-				if (nodeCopy.data?.report) {
-					// We have a report object
-					nodeCopy.data.loading = false;
-				} else {
-					// No report data exists
-					nodeCopy.data.loading = false;
-					nodeCopy.data.report = {
-						title: "Report Unavailable",
-						summary:
-							"The report content is not available. Please regenerate the report.",
-						sections: [],
-					};
-				}
-			}
-
-			if (nodeCopy.type === "questionNode") {
-				// For question nodes, we look for searchTerms, not questions
-				if (
-					nodeCopy.data?.searchTerms &&
-					Array.isArray(nodeCopy.data.searchTerms)
-				) {
-					nodeCopy.data.loading = false;
-				} else {
-					nodeCopy.data.loading = false;
-					nodeCopy.data.searchTerms = [];
-				}
-			}
-
-			return nodeCopy;
-		});
-	};
-
-	// Load projects from localStorage with post-processing
+	// Load projects from localStorage on mount
 	useEffect(() => {
-		try {
-			const savedProjects = localStorage.getItem(LOCAL_STORAGE_KEY);
-			const savedCurrentProjectId =
-				localStorage.getItem(CURRENT_PROJECT_KEY);
+		if (!isClient) return;
 
-			if (savedProjects) {
-				const parsedProjects = JSON.parse(
-					savedProjects
-				) as FlowProject[];
+		const savedProjects = safeJSONParse(
+			localStorage.getItem(LOCAL_STORAGE_KEY),
+			[]
+		);
+		const currentProjectId = localStorage.getItem(CURRENT_PROJECT_KEY);
 
-				// Process all projects
-				const normalizedProjects = parsedProjects.map((project) => ({
-					...project,
-					selectedReports: project.selectedReports || [],
-					// Ensure nodes don't have invalid loading states
-					nodes: postprocessLoadedNodes(project.nodes || []),
-				}));
-
-				setProjects(normalizedProjects);
-
-				if (savedCurrentProjectId) {
-					const current = normalizedProjects.find(
-						(p) => p.id === savedCurrentProjectId
-					);
-					if (current) {
-						setCurrentProject(current);
-					}
-				} else if (normalizedProjects.length > 0) {
-					// Default to the most recently updated project
-					const mostRecent = [...normalizedProjects].sort(
-						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
-					)[0];
-					setCurrentProject(mostRecent);
-					localStorage.setItem(CURRENT_PROJECT_KEY, mostRecent.id);
-				}
-			} else {
-				// Create a default project if no projects exist
-				const defaultProject = createProject("My Research Project");
-				setProjects([defaultProject]);
-				setCurrentProject(defaultProject);
-				localStorage.setItem(
-					LOCAL_STORAGE_KEY,
-					JSON.stringify([defaultProject])
-				);
-				localStorage.setItem(CURRENT_PROJECT_KEY, defaultProject.id);
-			}
-
-			refreshStorageInfo();
-		} catch (error) {
-			console.error("Failed to load projects from localStorage:", error);
+		setProjects(savedProjects);
+		if (currentProjectId) {
+			const current = savedProjects.find(
+				(p: FlowProject) => p.id === currentProjectId
+			);
+			if (current) setCurrentProject(current);
 		}
 	}, []);
 
 	// Save projects to localStorage whenever they change
 	useEffect(() => {
-		if (projects.length > 0) {
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects));
-			refreshStorageInfo();
-		}
+		if (!isClient) return;
+		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects));
 	}, [projects]);
 
-	// Save current project ID whenever it changes
+	// Save current project ID to localStorage whenever it changes
 	useEffect(() => {
+		if (!isClient) return;
 		if (currentProject) {
 			localStorage.setItem(CURRENT_PROJECT_KEY, currentProject.id);
+		} else {
+			localStorage.removeItem(CURRENT_PROJECT_KEY);
 		}
 	}, [currentProject]);
 
-	const refreshStorageInfo = () => {
-		const info = getLocalStorageUsage();
-		setStorageInfo({
-			...info,
-			formattedUsage: formatBytes(info.usage),
-			formattedAvailable: formatBytes(info.available),
-		});
-	};
+	// Calculate storage info
+	const refreshStorageInfo = useCallback(() => {
+		if (!isClient) return;
 
-	const createProject = (name: string): FlowProject => {
-		const now = new Date().toISOString();
+		const projectsStr = JSON.stringify(projects);
+		setStorageInfo({
+			totalSize: new Blob([projectsStr]).size,
+			projectCount: projects.length,
+			limit: 5 * 1024 * 1024,
+		});
+	}, [projects]);
+
+	useEffect(() => {
+		refreshStorageInfo();
+	}, [refreshStorageInfo]);
+
+	// Project management functions
+	const createProject = useCallback((name: string): FlowProject => {
 		const newProject: FlowProject = {
-			id: `project-${Date.now()}`,
+			id: `project-${Date.now()}-${Math.random()
+				.toString(36)
+				.substr(2, 9)}`,
 			name,
-			createdAt: now,
-			updatedAt: now,
 			nodes: [],
 			edges: [],
 			query: "",
 			selectedReports: [],
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
 		};
 
 		setProjects((prev) => [...prev, newProject]);
 		setCurrentProject(newProject);
-		refreshStorageInfo();
 		return newProject;
-	};
+	}, []);
 
-	const updateCurrentProject = (
-		data: Partial<Omit<FlowProject, "id" | "createdAt">>
-	) => {
-		if (!currentProject) return;
+	const updateCurrentProject = useCallback(
+		(updates: Partial<FlowProject>) => {
+			if (!currentProject) return;
 
-		const updatedProject = {
-			...currentProject,
-			...data,
-			updatedAt: new Date().toISOString(),
-		};
+			const updatedProject = {
+				...currentProject,
+				...updates,
+				updatedAt: Date.now(),
+			};
 
-		setCurrentProject(updatedProject);
-		setProjects((prev) =>
-			prev.map((p) => (p.id === currentProject.id ? updatedProject : p))
-		);
-	};
-
-	const deleteProject = (id: string) => {
-		setProjects((prev) => prev.filter((p) => p.id !== id));
-
-		if (currentProject?.id === id) {
-			const remainingProjects = projects.filter((p) => p.id !== id);
-			if (remainingProjects.length > 0) {
-				setCurrentProject(remainingProjects[0]);
-			} else {
-				// Reinitialize the project
-				const defaultProject = createProject("My Research Project");
-				setProjects([defaultProject]);
-				setCurrentProject(defaultProject);
-				localStorage.setItem(
-					LOCAL_STORAGE_KEY,
-					JSON.stringify([defaultProject])
-				);
-				localStorage.setItem(CURRENT_PROJECT_KEY, defaultProject.id);
-			}
-		}
-
-		refreshStorageInfo();
-		window.location.reload(); // Force reload the page after deletion
-	};
-
-	const exportProjects = (): string => {
-		return exportFlowProjects();
-	};
-
-	const importProjectsData = (jsonData: string): boolean => {
-		const success = importFlowProjects(jsonData);
-		if (success) {
-			// Reload projects from localStorage after import
-			try {
-				const savedProjects = localStorage.getItem(LOCAL_STORAGE_KEY);
-				const savedCurrentProjectId =
-					localStorage.getItem(CURRENT_PROJECT_KEY);
-
-				if (savedProjects) {
-					const parsedProjects = JSON.parse(
-						savedProjects
-					) as FlowProject[];
-
-					// Process all imported projects
-					const normalizedProjects = parsedProjects.map(
-						(project) => ({
-							...project,
-							selectedReports: project.selectedReports || [],
-							// Post-process nodes to handle loading states
-							nodes: postprocessLoadedNodes(project.nodes || []),
-						})
-					);
-
-					setProjects(normalizedProjects);
-
-					if (savedCurrentProjectId) {
-						const current = normalizedProjects.find(
-							(p) => p.id === savedCurrentProjectId
-						);
-						if (current) {
-							setCurrentProject(current);
-						} else if (normalizedProjects.length > 0) {
-							setCurrentProject(normalizedProjects[0]);
-						}
-					} else if (normalizedProjects.length > 0) {
-						setCurrentProject(normalizedProjects[0]);
-					}
-				}
-
-				refreshStorageInfo();
-			} catch (error) {
-				console.error("Failed to reload projects after import:", error);
-			}
-		}
-		return success;
-	};
-
-	// Get raw node and edge data and immediately save to localStorage
-	const saveDirect = () => {
-		if (!currentProject) return;
-
-		try {
-			// Just directly save the current project we have in memory
-			const allProjects = [...projects];
-			const currentIndex = allProjects.findIndex(
-				(p) => p.id === currentProject.id
+			setProjects((prev) =>
+				prev.map((p) =>
+					p.id === currentProject.id ? updatedProject : p
+				)
 			);
+			setCurrentProject(updatedProject);
+		},
+		[currentProject]
+	);
 
-			if (currentIndex >= 0) {
-				// Update the current project with what we have
-				allProjects[currentIndex] = {
-					...allProjects[currentIndex],
-					updatedAt: new Date().toISOString(),
-				};
-
-				// Save directly to localStorage
-				localStorage.setItem(
-					LOCAL_STORAGE_KEY,
-					JSON.stringify(allProjects)
-				);
-				console.log("Directly saved current state to localStorage!");
+	const deleteProject = useCallback(
+		(id: string) => {
+			setProjects((prev) => prev.filter((p) => p.id !== id));
+			if (currentProject?.id === id) {
+				setCurrentProject(null);
 			}
-		} catch (error) {
-			console.error("Error directly saving to localStorage:", error);
-		}
-	};
+		},
+		[currentProject]
+	);
 
-	// A simplified method to save the current state without preprocessing
-	const simpleSave = (
-		nodes: Node[],
-		edges: Edge[],
-		query: string,
-		selectedReports: string[] = []
-	) => {
-		console.log("Simple save method called with nodes:", nodes);
+	// Export/Import functions
+	const exportProjects = useCallback(() => {
+		const data = JSON.stringify(projects);
+		const blob = new Blob([data], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `flow-projects-${new Date().toISOString()}.json`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}, [projects]);
 
-		// First save the state to our React state
-		if (currentProject) {
-			const updatedData = {
+	const importProjects = useCallback((importedProjects: FlowProject[]) => {
+		setProjects((prev) => {
+			const merged = [...prev];
+			importedProjects.forEach((imported) => {
+				const existingIndex = merged.findIndex(
+					(p) => p.id === imported.id
+				);
+				if (existingIndex >= 0) {
+					merged[existingIndex] = imported;
+				} else {
+					merged.push(imported);
+				}
+			});
+			return merged;
+		});
+	}, []);
+
+	// Simple save function that directly updates localStorage
+	const simpleSave = useCallback(
+		(
+			nodes: Node[],
+			edges: Edge[],
+			query: string,
+			selectedReports: string[] = []
+		) => {
+			if (!currentProject || !isClient) return;
+
+			const updatedProject = {
+				...currentProject,
 				nodes,
 				edges,
 				query,
 				selectedReports,
+				updatedAt: Date.now(),
 			};
 
-			updateCurrentProject(updatedData);
-
-			// Also force a direct localStorage save
-			const updatedProject = {
-				...currentProject,
-				...updatedData,
-				updatedAt: new Date().toISOString(),
-			};
-
-			const updatedProjects = projects.map((p) =>
-				p.id === currentProject.id ? updatedProject : p
-			);
-
-			// Save directly to localStorage
 			localStorage.setItem(
 				LOCAL_STORAGE_KEY,
-				JSON.stringify(updatedProjects)
+				JSON.stringify(
+					projects.map((p) =>
+						p.id === currentProject.id ? updatedProject : p
+					)
+				)
 			);
-			console.log("Directly saved to localStorage!");
-		}
-	};
+
+			setCurrentProject(updatedProject);
+		},
+		[currentProject, projects]
+	);
+
+	// Save current state to project
+	const saveCurrentState = useCallback(
+		(
+			nodes: Node[],
+			edges: Edge[],
+			query: string,
+			selectedReports: string[] = []
+		) => {
+			if (!currentProject) return;
+
+			updateCurrentProject({
+				nodes,
+				edges,
+				query,
+				selectedReports,
+			});
+		},
+		[currentProject, updateCurrentProject]
+	);
 
 	return {
 		projects,
@@ -465,12 +237,11 @@ export function useFlowProjects(): UseFlowProjectsReturn {
 		createProject,
 		updateCurrentProject,
 		deleteProject,
-		saveCurrentState,
 		exportProjects,
-		importProjects: importProjectsData,
+		importProjects,
 		storageInfo,
 		refreshStorageInfo,
-		saveDirect,
 		simpleSave,
+		saveCurrentState,
 	};
-}
+};

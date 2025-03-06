@@ -773,6 +773,14 @@ function useConsolidation(
 				return { success: true, consolidated };
 			} catch (error) {
 				console.error("Consolidation error:", error);
+				toast({
+					variant: "destructive",
+					title: "Error",
+					description:
+						error instanceof Error
+							? error.message
+							: "Failed to consolidate reports",
+				});
 				return {
 					success: false,
 					error:
