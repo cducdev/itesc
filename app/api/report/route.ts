@@ -189,7 +189,7 @@ CITATION GUIDELINES:
 				console.log("Parsed report data:", reportData);
 
 				await logQuery({
-					original_query: prompt,
+					original_query: String(prompt || ""),
 					query: reportData.title,
 					results: reportData,
 					report: JSON.stringify(reportData),
@@ -228,7 +228,7 @@ CITATION GUIDELINES:
 		console.error("Report generation error:", error);
 		const startTime = Date.now();
 		await logQuery({
-			original_query: typeof prompt === "string" ? prompt : "",
+			original_query: String(prompt || ""),
 			query: "",
 			status: 500,
 			response_time: Date.now() - startTime,

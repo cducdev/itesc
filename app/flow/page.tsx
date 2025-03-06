@@ -46,6 +46,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 // Import the new utility functions
 import {
@@ -131,93 +132,6 @@ function useResearchFlow(
 		return error instanceof Error ? error.message : String(error);
 	}, []);
 
-	// Handle file upload for search nodes
-	const handleFileUpload = useCallback(
-		async (file: File, searchNodeId: string, groupId: string) => {
-			const result = await handleLocalFile(
-				file,
-				(loading) => {
-					setNodes((nds) =>
-						nds.map((node) =>
-							node.id === searchNodeId
-								? { ...node, data: { ...node.data, loading } }
-								: node
-						)
-					);
-				},
-				(error, context) => {
-					toast({
-						title: context,
-						description:
-							error instanceof Error
-								? error.message
-								: String(error),
-						variant: "destructive",
-					});
-				}
-			);
-
-			if (result) {
-				setNodes((nds) => {
-					const selectionNode = nds.find(
-						(n) =>
-							n.type === "selectionNode" && n.parentId === groupId
-					);
-
-					if (selectionNode) {
-						return nds.map((node) =>
-							node.id === selectionNode.id
-								? {
-										...node,
-										data: {
-											...node.data,
-											results: [
-												result,
-												...(node.data.results || []),
-											],
-										},
-								  }
-								: node.id === searchNodeId
-								? {
-										...node,
-										data: { ...node.data, loading: false },
-								  }
-								: node
-						);
-					}
-
-					const newSelectionNode = createNode(
-						"selectionNode",
-						{ x: 100, y: 200 },
-						{
-							results: [result],
-							onGenerateReport: (selected, prompt) => {
-								return handleGenerateReport(
-									selected,
-									searchNodeId,
-									groupId,
-									prompt
-								);
-							},
-							childIds: [],
-						},
-						groupId
-					);
-
-					return [
-						...nds.map((n) =>
-							n.id === searchNodeId
-								? { ...n, data: { ...n.data, loading: false } }
-								: n
-						),
-						newSelectionNode,
-					];
-				});
-			}
-		},
-		[createNode, setNodes, toast]
-	);
-
 	// Generate a report from selected search results
 	const handleGenerateReport = useCallback(
 		async (
@@ -227,6 +141,11 @@ function useResearchFlow(
 			prompt: string
 		) => {
 			if (selectedResults.length === 0) {
+				toast({
+					title: "Lỗi",
+					description: "Vui lòng chọn ít nhất một kết quả",
+					variant: "destructive",
+				});
 				return;
 			}
 
@@ -467,7 +386,95 @@ function useResearchFlow(
 			simpleSave,
 			saveCurrentState,
 			setQuery,
+			toast,
 		]
+	);
+
+	// Handle file upload for search nodes
+	const handleFileUpload = useCallback(
+		async (file: File, searchNodeId: string, groupId: string) => {
+			const result = await handleLocalFile(
+				file,
+				(loading) => {
+					setNodes((nds) =>
+						nds.map((node) =>
+							node.id === searchNodeId
+								? { ...node, data: { ...node.data, loading } }
+								: node
+						)
+					);
+				},
+				(error, context) => {
+					toast({
+						title: context,
+						description:
+							error instanceof Error
+								? error.message
+								: String(error),
+						variant: "destructive",
+					});
+				}
+			);
+
+			if (result) {
+				setNodes((nds) => {
+					const selectionNode = nds.find(
+						(n) =>
+							n.type === "selectionNode" && n.parentId === groupId
+					);
+
+					if (selectionNode) {
+						return nds.map((node) =>
+							node.id === selectionNode.id
+								? {
+										...node,
+										data: {
+											...node.data,
+											results: [
+												result,
+												...(node.data.results || []),
+											],
+										},
+								  }
+								: node.id === searchNodeId
+								? {
+										...node,
+										data: { ...node.data, loading: false },
+								  }
+								: node
+						);
+					}
+
+					const newSelectionNode = createNode(
+						"selectionNode",
+						{ x: 100, y: 200 },
+						{
+							results: [result],
+							onGenerateReport: (selected, prompt) => {
+								return handleGenerateReport(
+									selected,
+									searchNodeId,
+									groupId,
+									prompt
+								);
+							},
+							childIds: [],
+						},
+						groupId
+					);
+
+					return [
+						...nds.map((n) =>
+							n.id === searchNodeId
+								? { ...n, data: { ...n.data, loading: false } }
+								: n
+						),
+						newSelectionNode,
+					];
+				});
+			}
+		},
+		[createNode, setNodes, toast, handleGenerateReport]
 	);
 
 	// Start a new research flow
@@ -662,6 +669,7 @@ function useConsolidation(
 	selectedModel: string
 ) {
 	const [isConsolidating, setIsConsolidating] = useState(false);
+	const { toast } = useToast();
 
 	const consolidateReports = useCallback(
 		async (selectedReports: string[]) => {
@@ -776,7 +784,7 @@ function useConsolidation(
 				setIsConsolidating(false);
 			}
 		},
-		[createNode, nodes, selectedModel, setEdges, setNodes]
+		[createNode, nodes, selectedModel, setEdges, setNodes, toast]
 	);
 
 	return {
@@ -853,7 +861,7 @@ function Flow() {
 			saveNodesRef.current = null;
 			saveEdgesRef.current = null;
 		};
-	}, [currentProject, reactFlowInstance, updateCurrentProject]);
+	}, [currentProject, reactFlowInstance, updateCurrentProject, edges, nodes]);
 
 	// Stable callback wrappers that use the refs
 	const saveViewport = useCallback(() => {
@@ -1365,9 +1373,11 @@ function Flow() {
 								href="/"
 								className="font-bold text-xl text-white"
 							>
-								<img
+								<Image
 									src="/apple-icon.png"
 									alt="IT-ESC"
+									width={32}
+									height={32}
 									className="h-8 w-8 rounded-full"
 								/>
 							</Link>

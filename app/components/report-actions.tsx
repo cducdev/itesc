@@ -1,4 +1,10 @@
-const handleDownload = () => {
+import { type Report } from "@/types";
+
+interface ReportActionsProps {
+	report: Report;
+}
+
+const handleDownload = ({ report }: ReportActionsProps) => {
 	if (!report) return;
 
 	const content = `# ${report.title}
@@ -31,3 +37,5 @@ ${report.sources
 	document.body.removeChild(a);
 	URL.revokeObjectURL(url);
 };
+
+export { handleDownload };

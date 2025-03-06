@@ -41,6 +41,7 @@ import { handleLocalFile, SUPPORTED_FILE_TYPES } from "@/lib/file-upload";
 import { CitationsFooter } from "@/components/citations-footer";
 import TutorialPopup from "@/components/TutorialPopup";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import Image from "next/image";
 
 const timeFilters = [
 	{ value: "all", label: "Mọi thời điểm" },
@@ -445,6 +446,7 @@ export default function Home() {
 			handleError,
 			updateStatus,
 			updateState,
+			toast,
 		]
 	);
 
@@ -808,6 +810,9 @@ export default function Home() {
 			handleError,
 			updateState,
 			updateStatus,
+			fetchContent,
+			state.selectedModel,
+			toast,
 		]
 	);
 
@@ -898,10 +903,12 @@ export default function Home() {
 		<div className="min-h-screen bg-[#c78b8b] p-4 sm:p-8">
 			<div className="fixed inset-x-0 top-0 bg-black border-b border-gray-800 p-4 flex items-center justify-between z-50">
 				<div className="flex items-center gap-2">
-					<img
+					<Image
 						src="/apple-icon.png"
 						alt="IT-ESC"
-						className="w-8 h-8 rounded-full"
+						width={32}
+						height={32}
+						className="h-8 w-8 rounded-full"
 					/>
 					<span className="text-2xl font-bold text-white">
 						IT-ESC
@@ -930,10 +937,12 @@ export default function Home() {
 
 						<div className="mb-3">
 							<h1 className="mb-2 text-center text-white flex items-center justify-center gap-2">
-								<img
+								<Image
 									src="/apple-icon.png"
 									alt="IT-ESC"
-									className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
+									width={24}
+									height={24}
+									className="h-6 w-6 sm:h-8 sm:w-8 rounded-full"
 								/>
 								<span className="text-xl sm:text-3xl font-bold font-heading">
 									IT-ESC
