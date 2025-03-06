@@ -39,10 +39,10 @@ export function ReportContent({ id }: any) {
 				<div className="max-w-4xl mx-auto">
 					<Alert variant="destructive">
 						<AlertTriangle className="h-4 w-4" />
-						<AlertTitle>Report Not Found</AlertTitle>
+						<AlertTitle>Không tìm thấy báo cáo</AlertTitle>
 						<AlertDescription>
-							The report you&apos;re looking for doesn&apos;t
-							exist or has been deleted.
+							Báo cáo bạn đang tìm kiếm không tồn tại hoặc đã bị
+							xoá.
 						</AlertDescription>
 					</Alert>
 					<div className="mt-4 text-center">
@@ -52,7 +52,7 @@ export function ReportContent({ id }: any) {
 							className="gap-2 text-white hover:text-blue-400"
 						>
 							<ArrowLeft className="h-4 w-4" />
-							Back to Home
+							Quay lại trang chủ
 						</Button>
 					</div>
 				</div>
@@ -70,7 +70,7 @@ export function ReportContent({ id }: any) {
 						className="gap-2 text-white hover:text-blue-400"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Back
+						Quay lại
 					</Button>
 					<div className="flex gap-2">
 						<ReportActions
@@ -86,7 +86,7 @@ export function ReportContent({ id }: any) {
 							className="gap-2"
 						>
 							<Trash2 className="h-4 w-4" />
-							Delete Report
+							Xoá báo cáo
 						</Button>
 					</div>
 				</div>
@@ -98,12 +98,12 @@ export function ReportContent({ id }: any) {
 					>
 						<AlertTriangle className="h-4 w-4" />
 						<AlertTitle className="text-red-300">
-							Delete Report?
+							Xoá báo cáo?
 						</AlertTitle>
 						<AlertDescription className="space-y-2 text-red-300">
 							<p>
-								This will permanently delete this report from
-								your knowledge base.
+								Thao tác này sẽ xoá vĩnh viễn báo cáo khỏi kho
+								kiến thức của bạn.
 							</p>
 							<div className="flex gap-2 mt-2">
 								<Button
@@ -112,14 +112,14 @@ export function ReportContent({ id }: any) {
 									onClick={() => setShowDeleteConfirm(false)}
 									className="text-white border-gray-700 bg-black/50 hover:bg-black/70"
 								>
-									Cancel
+									Huỷ bỏ
 								</Button>
 								<Button
 									variant="destructive"
 									size="sm"
 									onClick={handleDelete}
 								>
-									Yes, Delete
+									Đồng ý, xoá
 								</Button>
 							</div>
 						</AlertDescription>
@@ -129,14 +129,14 @@ export function ReportContent({ id }: any) {
 				<Alert className="mb-6 bg-black/80 border-gray-800">
 					<Brain className="h-4 w-4 text-blue-400" />
 					<AlertTitle className="text-blue-400">
-						Knowledge Base Report
+						Báo cáo từ kho kiến thức
 					</AlertTitle>
 					<AlertDescription className="text-white">
-						This report was saved{" "}
+						Báo cáo này được lưu{" "}
 						{formatDistanceToNow(report.timestamp, {
 							addSuffix: true,
 						})}
-						in response to the query: &apos;{report.query}&apos;
+						cho câu hỏi: &apos;{report.query}&apos;
 					</AlertDescription>
 				</Alert>
 
@@ -148,7 +148,7 @@ export function ReportContent({ id }: any) {
 					</div>
 
 					<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-h2:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
-						<h2 className="text-blue-400">Summary</h2>
+						<h2 className="text-blue-400">Tóm tắt</h2>
 
 						{/* Scrollable content area */}
 						<div

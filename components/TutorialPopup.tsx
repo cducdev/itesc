@@ -35,7 +35,7 @@ const TutorialPopup: React.FC<TutorialPopupProps> = ({ isOpen, onClose }) => {
 				"Hệ thống sẽ tìm kiếm và hiển thị danh sách các nguồn tin liên quan",
 				"Chọn các nguồn bạn muốn sử dụng để tổng hợp báo cáo",
 				"Nếu có nguồn riêng, bạn có thể:",
-				'- Thêm URL vào ô "Custom URL"',
+				'- Thêm URL vào ô "URL tuỳ chỉnh"',
 				"- Tải lên file của bạn",
 				'Nhấn "Tạo báo cáo" để bắt đầu tổng hợp từ các nguồn đã chọn',
 			],

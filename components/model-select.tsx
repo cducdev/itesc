@@ -50,8 +50,8 @@ export function ModelSelect({
 				<SelectValue
 					placeholder={
 						platformModels.length === 0
-							? "No models available"
-							: "Select model"
+							? "Không có model nào khả dụng"
+							: "Chọn model"
 					}
 				/>
 			</SelectTrigger>

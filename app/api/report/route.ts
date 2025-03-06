@@ -4,11 +4,13 @@ import { type Article, type ModelVariant } from "@/types";
 import { CONFIG } from "@/lib/config";
 import { extractAndParseJSON } from "@/lib/utils";
 import { generateWithModel } from "@/lib/models";
+import { logQuery } from "@/lib/db";
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
 	try {
+		const startTime = Date.now();
 		const body = await request.json();
 		const {
 			selectedResults,
@@ -28,6 +30,12 @@ export async function POST(request: Request) {
 		if (CONFIG.rateLimits.enabled && platform !== "ollama") {
 			const { success } = await reportContentRatelimit.limit("report");
 			if (!success) {
+				await logQuery({
+					original_query: prompt,
+					query: "",
+					status: 429,
+					response_time: Date.now() - startTime,
+				});
 				return NextResponse.json(
 					{ error: "Too many requests" },
 					{ status: 429 }
@@ -39,6 +47,12 @@ export async function POST(request: Request) {
 		const platformConfig =
 			CONFIG.platforms[platform as keyof typeof CONFIG.platforms];
 		if (!platformConfig?.enabled) {
+			await logQuery({
+				original_query: prompt,
+				query: "",
+				status: 400,
+				response_time: Date.now() - startTime,
+			});
 			return NextResponse.json(
 				{ error: `${platform} platform is not enabled` },
 				{ status: 400 }
@@ -48,12 +62,24 @@ export async function POST(request: Request) {
 		// Check if selected model exists and is enabled
 		const modelConfig = (platformConfig as any).models[model];
 		if (!modelConfig) {
+			await logQuery({
+				original_query: prompt,
+				query: "",
+				status: 400,
+				response_time: Date.now() - startTime,
+			});
 			return NextResponse.json(
 				{ error: `${model} model does not exist` },
 				{ status: 400 }
 			);
 		}
 		if (!modelConfig.enabled) {
+			await logQuery({
+				original_query: prompt,
+				query: "",
+				status: 400,
+				response_time: Date.now() - startTime,
+			});
 			return NextResponse.json(
 				{ error: `${model} model is disabled` },
 				{ status: 400 }
@@ -147,6 +173,12 @@ CITATION GUIDELINES:
 			);
 
 			if (!response) {
+				await logQuery({
+					original_query: prompt,
+					query: "",
+					status: 500,
+					response_time: Date.now() - startTime,
+				});
 				throw new Error("No response from model");
 			}
 
@@ -155,9 +187,25 @@ CITATION GUIDELINES:
 				// Add sources to the report data
 				reportData.sources = sources;
 				console.log("Parsed report data:", reportData);
+
+				await logQuery({
+					original_query: prompt,
+					query: reportData.title,
+					results: reportData,
+					report: JSON.stringify(reportData),
+					status: 200,
+					response_time: Date.now() - startTime,
+				});
+
 				return NextResponse.json(reportData);
 			} catch (parseError) {
 				console.error("JSON parsing error:", parseError);
+				await logQuery({
+					original_query: prompt,
+					query: "",
+					status: 500,
+					response_time: Date.now() - startTime,
+				});
 				return NextResponse.json(
 					{ error: "Failed to parse report format" },
 					{ status: 500 }
@@ -165,6 +213,12 @@ CITATION GUIDELINES:
 			}
 		} catch (error) {
 			console.error("Model generation error:", error);
+			await logQuery({
+				original_query: prompt,
+				query: "",
+				status: 500,
+				response_time: Date.now() - startTime,
+			});
 			return NextResponse.json(
 				{ error: "Failed to generate report content" },
 				{ status: 500 }
@@ -172,6 +226,13 @@ CITATION GUIDELINES:
 		}
 	} catch (error) {
 		console.error("Report generation error:", error);
+		const startTime = Date.now();
+		await logQuery({
+			original_query: typeof prompt === "string" ? prompt : "",
+			query: "",
+			status: 500,
+			response_time: Date.now() - startTime,
+		});
 		return NextResponse.json(
 			{ error: "Failed to generate report" },
 			{ status: 500 }

@@ -394,8 +394,8 @@ function useResearchFlow(
 										if (term) {
 											setQuery(term);
 											toast({
-												title: "Search query updated",
-												description: `Updated search query to: "${term}"`,
+												title: "Đã cập nhật từ khoá tìm kiếm",
+												description: `Đã cập nhật từ khoá tìm kiếm thành: "${term}"`,
 											});
 										}
 										return term;
@@ -481,21 +481,28 @@ function useResearchFlow(
 
 			setLoading(true);
 			try {
-				// Calculate position for the new nodes
+				// Calculate base position
+				let baseX = (nodes?.length || 0) * 200;
+				let baseY = 0;
+
+				if (parentReportId) {
+					const parentNode = nodes?.find(
+						(n) => n.id === parentReportId
+					);
+					if (parentNode) {
+						baseX = parentNode.position.x || 0;
+						baseY = (parentNode.position.y || 0) + 400;
+					}
+				}
+
+				const basePosition = {
+					x: baseX,
+					y: baseY,
+				};
+
 				const randomOffset = {
 					x: Math.floor(Math.random() * 600) - 300,
 					y: Math.floor(Math.random() * 300),
-				};
-
-				const basePosition = {
-					x: parentReportId
-						? nodes?.find((n) => n.id === parentReportId)?.position
-								.x || 0
-						: (nodes?.length || 0) * 200,
-					y: parentReportId
-						? (nodes?.find((n) => n.id === parentReportId)?.position
-								.y || 0) + 400
-						: 0,
 				};
 
 				const groupPosition = {
@@ -659,10 +666,8 @@ function useConsolidation(
 	const consolidateReports = useCallback(
 		async (selectedReports: string[]) => {
 			if (selectedReports.length < 2) {
-				return {
-					success: false,
-					error: "Select at least 2 reports to consolidate",
-				};
+				console.error("Vui lòng chọn ít nhất 2 báo cáo để tổng hợp");
+				return;
 			}
 
 			setIsConsolidating(true);
@@ -1273,8 +1278,8 @@ function Flow() {
 								if (term) {
 									setQuery(term);
 									toast({
-										title: "Search query updated",
-										description: `Updated search query to: "${term}"`,
+										title: "Đã cập nhật từ khoá tìm kiếm",
+										description: `Đã cập nhật từ khoá tìm kiếm thành: "${term}"`,
 									});
 								}
 								return term;
@@ -1309,16 +1314,18 @@ function Flow() {
 	// Consolidation handler - add extra logging
 	const handleConsolidateSelected = useCallback(async () => {
 		if (selectedReports.length < 2) {
-			console.error("Select at least 2 reports to consolidate");
+			console.error("Vui lòng chọn ít nhất 2 báo cáo để tổng hợp");
 			return;
 		}
 
 		const result = await consolidateReports(selectedReports);
+		if (!result) return;
+
 		if (result.success) {
 			setSelectedReports([]);
 		} else if (result.error) {
 			toast({
-				title: "Consolidation Failed",
+				title: "Tổng hợp thất bại",
 				description: String(result.error),
 				variant: "destructive",
 			});
@@ -1372,7 +1379,7 @@ function Flow() {
 								size="sm"
 								className="text-white hover:text-blue-400"
 							>
-								<Link href="/">Home</Link>
+								<Link href="/">Trang chủ</Link>
 							</Button>
 						</div>
 					</div>
@@ -1427,19 +1434,7 @@ function Flow() {
 										asChild
 										className="text-white hover:bg-black/70"
 									>
-										<Link href="/">Home</Link>
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										asChild
-										className="text-white hover:bg-black/70"
-									>
-										<Link
-											href="https://www.loom.com/share/3c4d9811ac1d47eeaa7a0907c43aef7f"
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Watch Demo
-										</Link>
+										<Link href="/">Trang chủ</Link>
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -1457,7 +1452,7 @@ function Flow() {
 					<Input
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder="Enter research topic"
+						placeholder="Nhập chủ đề nghiên cứu"
 						className="flex-1 min-w-0 bg-black/50 border-gray-700 text-white placeholder:text-gray-400"
 					/>
 					<Button
@@ -1468,12 +1463,12 @@ function Flow() {
 						{researchLoading ? (
 							<>
 								<Brain className="h-4 w-4 animate-spin" />
-								Researching...
+								Đang nghiên cứu...
 							</>
 						) : (
 							<>
 								<Search className="h-4 w-4" />
-								Start Research
+								Bắt đầu nghiên cứu
 							</>
 						)}
 					</Button>
@@ -1481,7 +1476,7 @@ function Flow() {
 				<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
 					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
 						<p className="text-sm text-white whitespace-nowrap">
-							Model for report generation:
+							Mô hình tạo báo cáo:
 						</p>
 						<ModelSelect
 							value={selectedModel}
@@ -1498,12 +1493,12 @@ function Flow() {
 						{isConsolidating ? (
 							<>
 								<Loader2 className="h-4 w-4 animate-spin" />
-								Consolidating...
+								Đang tổng hợp...
 							</>
 						) : (
 							<>
 								<FileText className="h-4 w-4" />
-								Consolidate Selected ({selectedReports.length})
+								Tổng hợp đã chọn ({selectedReports.length})
 							</>
 						)}
 					</Button>

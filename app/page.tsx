@@ -43,11 +43,11 @@ import TutorialPopup from "@/components/TutorialPopup";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 const timeFilters = [
-	{ value: "all", label: "Any time" },
-	{ value: "24h", label: "Past 24 hours" },
-	{ value: "week", label: "Past week" },
-	{ value: "month", label: "Past month" },
-	{ value: "year", label: "Past year" },
+	{ value: "all", label: "Mọi thời điểm" },
+	{ value: "24h", label: "24 giờ qua" },
+	{ value: "week", label: "Tuần qua" },
+	{ value: "month", label: "Tháng qua" },
+	{ value: "year", label: "Năm qua" },
 ] as const;
 
 const MAX_SELECTIONS = CONFIG.search.maxSelectableResults;
@@ -135,13 +135,13 @@ export default function Home() {
 	// Memoized error handler
 	const handleError = useCallback(
 		(error: unknown, context: string) => {
-			let message = "An unexpected error occurred";
+			let message = "Đã xảy ra lỗi không mong muốn";
 
 			if (error instanceof Error) {
 				message = error.message;
 			} else if (error instanceof Response) {
 				// Handle Response objects from fetch
-				message = `Server error: ${error.status}`;
+				message = `Lỗi máy chủ: ${error.status}`;
 			} else if (
 				typeof error === "object" &&
 				error !== null &&
@@ -176,10 +176,10 @@ export default function Home() {
 			if (!response.ok) {
 				const errorData = await response
 					.json()
-					.catch(() => ({ error: "Failed to fetch content" }));
+					.catch(() => ({ error: "Không thể tải nội dung" }));
 				throw new Error(
 					errorData.error ||
-						`Failed to fetch content: ${response.status}`
+						`Không thể tải nội dung: ${response.status}`
 				);
 			}
 
@@ -474,8 +474,8 @@ export default function Home() {
 			e.preventDefault();
 			if (!state.reportPrompt.trim()) {
 				toast({
-					title: "Missing Information",
-					description: "Please provide a research topic",
+					title: "Thiếu thông tin",
+					description: "Vui lòng cung cấp chủ đề nghiên cứu",
 					variant: "destructive",
 				});
 				return;
@@ -511,7 +511,7 @@ export default function Home() {
 					});
 					if (!response.ok) {
 						throw new Error(
-							`Failed to optimize research: ${response.status} ${response.statusText}`
+							`Không thể tối ưu hoá nghiên cứu: ${response.status} ${response.statusText}`
 						);
 					}
 					return response.json();
@@ -563,10 +563,10 @@ export default function Home() {
 						}
 						if (response.status === 403) {
 							throw new Error(
-								"Search quota exceeded. Please try again later or contact support."
+								"Hạn ngạch tìm kiếm đã hết. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
 							);
 						}
-						throw new Error("Search failed");
+						throw new Error("Tìm kiếm thất bại");
 					}
 					return response.json();
 				});
@@ -574,7 +574,7 @@ export default function Home() {
 				const searchResults = searchResponse.webPages?.value || [];
 				if (searchResults.length === 0) {
 					throw new Error(
-						"No search results found. Please try a different query."
+						"Không tìm thấy kết quả. Vui lòng thử từ khoá khác."
 					);
 				}
 
@@ -631,7 +631,7 @@ export default function Home() {
 
 				if (rankedResults.every((r: SearchResult) => r.score === 0)) {
 					throw new Error(
-						"No relevant results found. Please try a different query."
+						"Không tìm thấy đủ nguồn đa dạng, chất lượng cao. Vui lòng thử từ khoá khác."
 					);
 				}
 
@@ -667,7 +667,7 @@ export default function Home() {
 
 				if (selected.length === 0) {
 					throw new Error(
-						"Could not find enough diverse, high-quality sources. Please try a different query."
+						"Không tìm thấy đủ nguồn đa dạng, chất lượng cao. Vui lòng thử từ khoá khác."
 					);
 				}
 
@@ -896,14 +896,24 @@ export default function Home() {
 
 	return (
 		<div className="min-h-screen bg-[#c78b8b] p-4 sm:p-8">
-			<div className="fixed inset-x-0 top-0 bg-black border-b border-gray-800 p-4 flex flex-col sm:flex-row items-center justify-center gap-4 z-50">
+			<div className="fixed inset-x-0 top-0 bg-black border-b border-gray-800 p-4 flex items-center justify-between z-50">
+				<div className="flex items-center gap-2">
+					<img
+						src="/apple-icon.png"
+						alt="IT-ESC"
+						className="w-8 h-8 rounded-full"
+					/>
+					<span className="text-2xl font-bold text-white">
+						IT-ESC
+					</span>
+				</div>
 				<Button
 					asChild
 					variant="default"
 					size="sm"
 					className="whitespace-nowrap bg-blue-600 hover:bg-blue-700"
 				>
-					<a href="/flow">Try Flow →</a>
+					<a href="/flow">Flow Page</a>
 				</Button>
 			</div>
 			<div className="pt-20">
@@ -974,8 +984,8 @@ export default function Home() {
 											htmlFor="agent-mode"
 											className="text-xs sm:text-sm font-medium leading-none text-white peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 										>
-											Agent Mode (Automatic search and
-											report generation)
+											Agent Mode (Tự động tìm kiếm và tổng
+											hợp báo cáo)
 										</label>
 									</div>
 								</div>
@@ -992,7 +1002,7 @@ export default function Home() {
 									<div className="space-y-2">
 										<div className="flex items-center gap-2 text-sm">
 											<span className="font-medium text-blue-400">
-												Current Step:
+												Bước hiện tại:
 											</span>
 											<span className="capitalize text-blue-400">
 												{state.status.agentStep}
@@ -1003,7 +1013,7 @@ export default function Home() {
 											0 && (
 											<Collapsible>
 												<CollapsibleTrigger className="text-sm text-blue-400 hover:underline flex items-center gap-1">
-													Show Research Details{" "}
+													Hiển thị chi tiết nghiên cứu{" "}
 													<ChevronDown className="h-4 w-4" />
 												</CollapsibleTrigger>
 												<CollapsibleContent className="mt-2 space-y-2 text-sm text-white">
@@ -1048,7 +1058,7 @@ export default function Home() {
 																.value,
 														})
 													}
-													placeholder="Enter your search query..."
+													placeholder="Nhập từ khoá tìm kiếm..."
 													className="pr-8 bg-black text-white placeholder-white"
 												/>
 												<Search className="absolute right-2 top-2 h-5 w-5 text-white" />
@@ -1068,7 +1078,7 @@ export default function Home() {
 														}
 													>
 														<SelectTrigger className="flex-1 sm:flex-initial sm:w-[140px] bg-black text-white border-0">
-															<SelectValue placeholder="Select time range" />
+															<SelectValue placeholder="Chọn khoảng thời gian" />
 														</SelectTrigger>
 														<SelectContent className="bg-black text-white border-0">
 															{timeFilters.map(
@@ -1115,8 +1125,8 @@ export default function Home() {
 													className="w-full sm:w-auto bg-black text-white hover:bg-gray-900"
 												>
 													{state.status.loading
-														? "Searching..."
-														: "Search"}
+														? "Đang tìm..."
+														: "Tìm kiếm"}
 												</Button>
 											</div>
 										</div>
@@ -1129,7 +1139,7 @@ export default function Home() {
 														newUrl: e.target.value,
 													})
 												}
-												placeholder="Add custom URL..."
+												placeholder="Thêm URL tuỳ chỉnh..."
 												className="flex-1 bg-black text-white placeholder-white"
 												onKeyDown={(e) => {
 													if (e.key === "Enter") {
@@ -1145,7 +1155,7 @@ export default function Home() {
 												className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
 											>
 												<Plus className="h-4 w-4" />
-												Add URL
+												Thêm URL
 											</Button>
 											<Button
 												type="button"
@@ -1171,7 +1181,7 @@ export default function Home() {
 													className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-gray-900 border-0"
 												>
 													<UploadIcon className="h-4 w-4" />
-													Upload File
+													Tải file lên
 												</Button>
 												<Button
 													type="button"
@@ -1200,7 +1210,7 @@ export default function Home() {
 															query: "",
 														});
 													}}
-													placeholder="What would you like to research? (e.g., 'Tesla Q4 2024 financial performance and market impact')"
+													placeholder="Bạn muốn nghiên cứu về chủ đề gì? (Ví dụ: 'Tesla Q4 2024 financial performance and market impact')"
 													className="pr-8 text-xl bg-black text-white placeholder-white w-full h-14"
 												/>
 												<Brain className="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 text-white" />
@@ -1234,13 +1244,13 @@ export default function Home() {
 														{
 															{
 																processing:
-																	"Planning Research...",
+																	"Đang lập kế hoạch...",
 																searching:
-																	"Searching Web...",
+																	"Đang tìm kiếm...",
 																analyzing:
-																	"Analyzing Results...",
+																	"Đang phân tích...",
 																generating:
-																	"Writing Report...",
+																	"Đang viết báo cáo...",
 															}[
 																state.status
 																	.agentStep
@@ -1248,7 +1258,7 @@ export default function Home() {
 														}
 													</span>
 												) : (
-													"Start Deep Research"
+													"Tìm kiếm"
 												)}
 											</Button>
 										</div>
@@ -1263,7 +1273,7 @@ export default function Home() {
 							<div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
 								<div className="flex items-center gap-2 text-red-700">
 									<div>
-										<h3 className="font-semibold">Error</h3>
+										<h3 className="font-semibold">Lỗi</h3>
 										<p className="text-sm">{state.error}</p>
 									</div>
 								</div>
@@ -1294,7 +1304,7 @@ export default function Home() {
 																		.value,
 															})
 														}
-														placeholder="What would you like to know about these sources? (e.g., 'Compare and analyze the key points')"
+														placeholder="Bạn muốn biết gì về những nguồn này? (Ví dụ: 'So sánh và phân tích các điểm chính')"
 														className="pr-8 bg-black text-white placeholder-white"
 													/>
 													<FileText className="absolute right-2 top-2.5 h-5 w-5 text-white" />
@@ -1314,10 +1324,10 @@ export default function Home() {
 														.generatingReport ? (
 														<span className="flex items-center gap-2">
 															<Loader2 className="h-4 w-4 animate-spin" />
-															Generating...
+															Đang tạo...
 														</span>
 													) : (
-														"Generate Report"
+														"Tạo báo cáo"
 													)}
 												</Button>
 											</div>
@@ -1325,10 +1335,10 @@ export default function Home() {
 									<div className="text-center sm:text-left">
 										<p className="text-base font-medium bg-blue-600/20 inline-block px-3 py-1.5 rounded-full">
 											{state.selectedResults.length === 0
-												? "Select up to 3 results to generate a report"
+												? "Chọn tối đa 3 kết quả để tạo báo cáo"
 												: state.selectedModel
-												? `${state.selectedResults.length} of ${MAX_SELECTIONS} results selected`
-												: "Please select a model above to generate a report"}
+												? `${state.selectedResults.length} trong số ${MAX_SELECTIONS} kết quả đã được chọn`
+												: "Vui lòng chọn model ở trên để tạo báo cáo"}
 										</p>
 										{state.status.generatingReport && (
 											<p className="mt-2 text-sm text-blue-400">
@@ -1336,12 +1346,12 @@ export default function Home() {
 													state.status.fetchStatus
 														.successful
 												}{" "}
-												fetched,{" "}
+												đã tải,{" "}
 												{
 													state.status.fetchStatus
 														.fallback
 												}{" "}
-												failed (of{" "}
+												thất bại (trong số{" "}
 												{state.status.fetchStatus.total}
 												)
 											</p>
@@ -1352,14 +1362,14 @@ export default function Home() {
 											value="search"
 											className="text-white data-[state=active]:bg-blue-600"
 										>
-											Search Results
+											Kết quả tìm kiếm
 										</TabsTrigger>
 										<TabsTrigger
 											value="report"
 											disabled={!state.report}
 											className="text-white data-[state=active]:bg-blue-600"
 										>
-											Report
+											Báo cáo
 										</TabsTrigger>
 									</TabsList>
 
