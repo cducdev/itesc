@@ -233,6 +233,7 @@ export async function POST(request: Request) {
 			}
 
 			const data = await googleResponse.json();
+			console.log(googleResponse, data);
 
 			// Transform Google search results to match our format
 			const transformedResults = {

@@ -5,25 +5,99 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+export function escapeJsonString(str: string): string {
+	if (typeof str !== "string") return str;
+
+	return str
+		.replace(/\\/g, "\\\\") // Escape backslashes first
+		.replace(/"/g, '\\"') // Escape double quotes
+		.replace(/\n/g, "\\n") // Escape newlines
+		.replace(/\r/g, "\\r") // Escape carriage returns
+		.replace(/\t/g, "\\t") // Escape tabs
+		.replace(/\f/g, "\\f") // Escape form feeds
+		.replace(/[\x00-\x1F]/g, function (ch) {
+			// Escape control characters
+			return "\\u" + ("0000" + ch.charCodeAt(0).toString(16)).slice(-4);
+		});
+}
+
 export function extractAndParseJSON(response: string) {
 	// console.log(response);
+	//tariff between us and canada
+
 	function cleanJson(jsonStr: string): string {
-		return (
-			jsonStr
-				// Remove YAML pipe characters
-				.replace(/\|\n/g, "\n")
-				// Remove YAML block scalar indicators (> and |) after colons
-				.replace(/:\s*[>|](\s*\n|\s*$)/g, ": ")
-				// Clean up any remaining YAML/Markdown artifacts
-				.replace(/^\s*>/gm, "")
-				// Remove trailing commas before closing braces/brackets
-				.replace(/,(\s*[}\]])/g, "$1")
-				// Normalize multiple newlines to single newlines
-				.replace(/\n\s*\n/g, "\n")
-				// Remove leading/trailing whitespace in multiline strings
-				.replace(/:\s*"[\s\n]+/g, ': "')
-				.replace(/[\s\n]+"/g, '"')
-		);
+		// Pre-process to handle any invalid escape sequences
+		jsonStr = jsonStr.replace(/\\([^"\\\/bfnrtu])/g, "$1");
+
+		let inString = false;
+		let escaped = false;
+		let result = "";
+		let buffer = "";
+
+		for (let i = 0; i < jsonStr.length; i++) {
+			const char = jsonStr[i];
+
+			if (escaped) {
+				if ('bfnrt\\"/'.indexOf(char) !== -1) {
+					buffer += "\\" + char;
+				} else if (char === "u") {
+					// Handle unicode escapes
+					const unicodeStr = jsonStr.slice(i + 1, i + 5);
+					if (/^[0-9a-fA-F]{4}$/.test(unicodeStr)) {
+						buffer += "\\u" + unicodeStr;
+						i += 4;
+					} else {
+						buffer += char;
+					}
+				} else {
+					buffer += char;
+				}
+				escaped = false;
+				continue;
+			}
+
+			if (char === "\\") {
+				escaped = true;
+				continue;
+			}
+
+			if (char === '"' && !escaped) {
+				if (inString) {
+					// End of string - add escaped content
+					result += '"' + buffer + '"';
+					buffer = "";
+				} else {
+					// Start of string
+					result += '"';
+				}
+				inString = !inString;
+				continue;
+			}
+
+			if (inString) {
+				buffer += char;
+			} else {
+				result += char;
+			}
+		}
+
+		// Add any remaining buffer
+		if (buffer) {
+			result += buffer;
+		}
+
+		// Clean up the result
+		return result
+			.replace(/\|\n/g, "\\n")
+			.replace(/:\s*[>|](\s*\n|\s*$)/g, ": ")
+			.replace(/^\s*>/gm, "")
+			.replace(/,(\s*[}\]])/g, "$1")
+			.replace(/\n\s*\n/g, "\\n")
+			.replace(/:\s*"[\s\n]+/g, ':"')
+			.replace(/[\s\n]+"/g, '"')
+			.replace(/""+/g, '"')
+			.replace(/\\\\/g, "\\") // Fix double escapes
+			.replace(/\\"/g, '\\"'); // Ensure quotes are properly escaped
 	}
 
 	// First attempt: Try to parse the entire response as JSON
