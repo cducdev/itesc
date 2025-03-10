@@ -10,7 +10,7 @@ import {
 import type { PlatformModel } from "@/types";
 import { CONFIG } from "@/lib/config";
 
-const DEFAULT_MODEL = "google__gemini-flash-thinking";
+const DEFAULT_MODEL = "google__gemini-flash";
 
 export const platformModels = Object.entries(CONFIG.platforms)
 	.flatMap(([platform, config]) => {
