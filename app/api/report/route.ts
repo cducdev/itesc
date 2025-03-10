@@ -17,11 +17,13 @@ export async function POST(request: Request) {
 			sources,
 			prompt,
 			platformModel = "google-gemini-flash",
+			language = "en", // Default to English if not specified
 		} = body as {
 			selectedResults: Article[];
 			sources: any[];
 			prompt: string;
 			platformModel: ModelVariant;
+			language: "en" | "vi";
 		};
 
 		// Only check rate limit if enabled and not using Ollama (local model)
@@ -88,14 +90,41 @@ export async function POST(request: Request) {
 
 		const generateSystemPrompt = (
 			articles: Article[],
-			userPrompt: string
+			userPrompt: string,
+			language: "en" | "vi"
 		) => {
-			return `You are a research assistant tasked with creating a comprehensive report based on multiple sources. 
+			const isVietnamese = language === "vi";
+
+			const reportStructure = isVietnamese
+				? {
+						title: "Tiêu đề báo cáo",
+						summary: "Tóm tắt tổng quan (có thể sử dụng markdown)",
+						sectionTitle: "Tiêu đề phần",
+						sectionContent:
+							"Nội dung phần với định dạng markdown và trích dẫn chọn lọc",
+						usedSourcesComment:
+							"Mảng số nguồn thực sự được trích dẫn trong báo cáo",
+				  }
+				: {
+						title: "Report title",
+						summary: "Executive summary (can include markdown)",
+						sectionTitle: "Section title",
+						sectionContent:
+							"Section content with markdown formatting and selective citations",
+						usedSourcesComment:
+							"Array of source numbers that were actually cited in the report",
+				  };
+
+			return `You are a research assistant tasked with creating a comprehensive report ${
+				isVietnamese ? "in Vietnamese" : "in English"
+			} based on multiple sources. 
 The report should specifically address this request: "${userPrompt}"
 
 Your report should:
-1. Have a clear title that reflects the specific analysis requested
-2. Begin with a concise executive summary
+1. Have a clear title ${
+				isVietnamese ? "in Vietnamese" : ""
+			} that reflects the specific analysis requested
+2. Begin with a concise executive summary ${isVietnamese ? "in Vietnamese" : ""}
 3. Be organized into relevant sections based on the analysis requested
 4. Use markdown formatting for emphasis, lists, and structure
 5. Use citations ONLY when necessary for specific claims, statistics, direct quotes, or important facts
@@ -118,15 +147,15 @@ Content: ${article.content}
 
 Format the report as a JSON object with the following structure:
 {
-  "title": "Report title",
-  "summary": "Executive summary (can include markdown)",
+  "title": "${reportStructure.title}",
+  "summary": "${reportStructure.summary}",
   "sections": [
     {
-      "title": "Section title",
-      "content": "Section content with markdown formatting and selective citations"
+      "title": "${reportStructure.sectionTitle}",
+      "content": "${reportStructure.sectionContent}"
     }
   ],
-  "usedSources": [1, 2] // Array of source numbers that were actually cited in the report
+  "usedSources": [1, 2] // ${reportStructure.usedSourcesComment}
 }
 
 Use markdown formatting in the content to improve readability:
@@ -158,10 +187,20 @@ CITATION GUIDELINES:
 
 6. You DO NOT need to cite every source provided. Only cite the sources that contain information directly relevant to the report. Track which sources you actually cite and include their numbers in the "usedSources" array in the output JSON.
 
-7. It's completely fine if some sources aren't cited at all - this means they weren't needed for the specific analysis requested.`;
+7. It's completely fine if some sources aren't cited at all - this means they weren't needed for the specific analysis requested.
+
+${
+	isVietnamese
+		? "IMPORTANT: The entire report content must be in Vietnamese, including all sections, summaries, and analysis."
+		: ""
+}`;
 		};
 
-		const systemPrompt = generateSystemPrompt(selectedResults, prompt);
+		const systemPrompt = generateSystemPrompt(
+			selectedResults,
+			prompt,
+			language
+		);
 
 		// console.log('Sending prompt to model:', systemPrompt)
 		console.log("Model:", model);

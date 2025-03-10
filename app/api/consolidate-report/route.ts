@@ -1,75 +1,75 @@
-import { NextResponse } from 'next/server'
-import { CONFIG } from '@/lib/config'
-import { generateWithModel } from '@/lib/models'
-import type { Report } from '@/types'
-import { reportContentRatelimit } from '@/lib/redis'
+import { NextResponse } from "next/server";
+import { CONFIG } from "@/lib/config";
+import { generateWithModel } from "@/lib/models";
+import type { Report } from "@/types";
+import { reportContentRatelimit } from "@/lib/redis";
 
 export async function POST(request: Request) {
-  try {
-    const { reports, platformModel } = await request.json()
-    const [platform, model] = platformModel.split('__')
+	try {
+		const { reports, platformModel } = await request.json();
+		const [platform, model] = platformModel.split("__");
 
-    if (CONFIG.rateLimits.enabled && platform !== 'ollama') {
-      const { success } = await reportContentRatelimit.limit('report')
-      if (!success) {
-        return NextResponse.json(
-          { error: 'Too many requests' },
-          { status: 429 }
-        )
-      }
-    }
+		if (CONFIG.rateLimits.enabled && platform !== "ollama") {
+			const { success } = await reportContentRatelimit.limit("report");
+			if (!success) {
+				return NextResponse.json(
+					{ error: "Too many requests" },
+					{ status: 429 }
+				);
+			}
+		}
 
-    console.log('Consolidating reports:', {
-      numReports: reports.length,
-      reportTitles: reports.map((r: Report) => r.title),
-      platform,
-      model,
-    })
+		console.log("Consolidating reports:", {
+			numReports: reports.length,
+			reportTitles: reports.map((r: Report) => r.title),
+			platform,
+			model,
+		});
 
-    if (!reports?.length) {
-      return NextResponse.json(
-        { error: 'Reports are required' },
-        { status: 400 }
-      )
-    }
+		if (!reports?.length) {
+			return NextResponse.json(
+				{ error: "Reports are required" },
+				{ status: 400 }
+			);
+		}
 
-    // Collect all unique sources from all reports
-    const allSources: { id: string; url: string; name: string }[] = []
-    const sourceMap = new Map<string, number>() // Maps source id to index in allSources
+		// Collect all unique sources from all reports
+		const allSources: { id: string; url: string; name: string }[] = [];
+		const sourceMap = new Map<string, number>(); // Maps source id to index in allSources
 
-    reports.forEach((report: Report) => {
-      if (report.sources && report.sources.length > 0) {
-        report.sources.forEach((source) => {
-          if (!sourceMap.has(source.id)) {
-            sourceMap.set(source.id, allSources.length)
-            allSources.push(source)
-          }
-        })
-      }
-    })
+		reports.forEach((report: Report) => {
+			if (report.sources && report.sources.length > 0) {
+				report.sources.forEach((source) => {
+					if (!sourceMap.has(source.id)) {
+						sourceMap.set(source.id, allSources.length);
+						allSources.push(source);
+					}
+				});
+			}
+		});
 
-    // Create source index for citations
-    const sourceIndex = allSources
-      .map(
-        (source, index) =>
-          `[${index + 1}] Source: ${source.name} - ${source.url}`
-      )
-      .join('\n')
+		// Create source index for citations
+		const sourceIndex = allSources
+			.map(
+				(source, index) =>
+					`[${index + 1}] Source: ${source.name} - ${source.url}`
+			)
+			.join("\n");
 
-    const prompt = `Create a comprehensive consolidated report that synthesizes the following research reports:
+		const prompt = `Create a comprehensive consolidated report that synthesizes the following research reports:
 
 ${reports
-  .map(
-    (report: Report, index: number) => `
+	.map(
+		(report: Report, index: number) => `
 Report ${index + 1} Title: ${report.title}
 Report ${index + 1} Summary: ${report.summary}
 Key Findings:
 ${report.sections
-  ?.map((section) => `- ${section.title}: ${section.content}`)
-  .join('\n')}
+	?.map((section) => `- ${section.title}: ${section.content}`)
+	.join("\n")}
 `
-  )
-  .join('\n\n')}
+	)
+	.join("\n\n")}
 
 Sources for citation:
 ${sourceIndex}
@@ -123,56 +123,59 @@ CITATION GUIDELINES:
 
 6. You DO NOT need to cite every source provided. Only cite the sources that contain information directly relevant to the report. Track which sources you actually cite and include their numbers in the "usedSources" array in the output JSON.
 
-7. It's completely fine if some sources aren't cited at all - this means they weren't needed for the specific analysis requested.`
+7. It's completely fine if some sources aren't cited at all - this means they weren't needed for the specific analysis requested.`;
 
-    console.log('Generated prompt:', prompt)
+		console.log("Generated prompt:", prompt);
 
-    try {
-      const response = await generateWithModel(prompt, platformModel)
+		try {
+			const response = await generateWithModel(prompt, platformModel);
 
-      if (!response) {
-        throw new Error('No response from model')
-      }
+			if (!response) {
+				throw new Error("No response from model");
+			}
 
-      console.log('Model response:', response)
+			console.log("Model response:", response);
 
-      // Try to parse the response as JSON, if it's not already
-      let parsedResponse
-      try {
-        parsedResponse =
-          typeof response === 'string' ? JSON.parse(response) : response
-        console.log('Parsed response:', parsedResponse)
-      } catch (parseError) {
-        console.error('Failed to parse response as JSON:', parseError)
-        // If it's not JSON, create a basic report structure
-        parsedResponse = {
-          title: 'Consolidated Research Report',
-          summary: response.split('\n\n')[0] || 'Summary not available',
-          sections: [
-            {
-              title: 'Findings',
-              content: response,
-            },
-          ],
-        }
-      }
+			// Try to parse the response as JSON, if it's not already
+			let parsedResponse;
+			try {
+				parsedResponse =
+					typeof response === "string"
+						? JSON.parse(response)
+						: response;
+				console.log("Parsed response:", parsedResponse);
+			} catch (parseError) {
+				console.error("Failed to parse response as JSON:", parseError);
+				// If it's not JSON, create a basic report structure
+				parsedResponse = {
+					title: "Consolidated Research Report",
+					summary:
+						response.split("\n\n")[0] || "Summary not available",
+					sections: [
+						{
+							title: "Findings",
+							content: response,
+						},
+					],
+				};
+			}
 
-      // Add sources to the response
-      parsedResponse.sources = allSources
+			// Add sources to the response
+			parsedResponse.sources = allSources;
 
-      return NextResponse.json(parsedResponse)
-    } catch (error) {
-      console.error('Model generation error:', error)
-      return NextResponse.json(
-        { error: 'Failed to generate consolidated report' },
-        { status: 500 }
-      )
-    }
-  } catch (error) {
-    console.error('Consolidation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to consolidate reports' },
-      { status: 500 }
-    )
-  }
+			return NextResponse.json(parsedResponse);
+		} catch (error) {
+			console.error("Model generation error:", error);
+			return NextResponse.json(
+				{ error: "Failed to generate consolidated report" },
+				{ status: 500 }
+			);
+		}
+	} catch (error) {
+		console.error("Consolidation error:", error);
+		return NextResponse.json(
+			{ error: "Failed to consolidate reports" },
+			{ status: 500 }
+		);
+	}
 }

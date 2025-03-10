@@ -93,6 +93,7 @@ export type State = {
 	activeTab: string;
 	status: Status;
 	showTutorial: boolean;
+	selectedLanguage: "en" | "vi";
 };
 
 // Flow Component Types

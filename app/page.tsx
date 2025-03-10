@@ -107,6 +107,7 @@ export default function Home() {
 			searchQueries: [],
 		},
 		showTutorial: false,
+		selectedLanguage: "en",
 	});
 
 	const { toast } = useToast();
@@ -464,9 +465,53 @@ export default function Home() {
 	}, [state.query, state.reportPrompt, state.selectedResults.length]);
 
 	const generateReport = useCallback(() => {
-		if (!state.reportPrompt || state.selectedResults.length === 0) return;
-		updateState({ query: state.reportPrompt });
-	}, [state.reportPrompt, state.selectedResults.length, updateState]);
+		if (!state.reportPrompt.trim() || state.status.generatingReport) return;
+
+		updateStatus({ generatingReport: true });
+		updateState({ error: null });
+
+		fetch("/api/report", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				selectedResults: state.results.filter((r) =>
+					state.selectedResults.includes(r.id)
+				),
+				sources: state.results.filter((r) =>
+					state.selectedResults.includes(r.id)
+				),
+				prompt: state.reportPrompt,
+				platformModel: state.selectedModel,
+				language: state.selectedLanguage,
+			}),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.error) {
+					throw new Error(data.error);
+				}
+				updateState({
+					report: data,
+					activeTab: "report",
+				});
+			})
+			.catch((error) => {
+				handleError(error, "Report Generation Failed");
+			})
+			.finally(() => {
+				updateStatus({ generatingReport: false });
+			});
+	}, [
+		state.reportPrompt,
+		state.status.generatingReport,
+		state.results,
+		state.selectedResults,
+		state.selectedModel,
+		state.selectedLanguage,
+		updateState,
+		updateStatus,
+		handleError,
+	]);
 
 	// Memoized agent search handler
 	const handleAgentSearch = useCallback(
@@ -780,6 +825,7 @@ export default function Home() {
 							sources: selected,
 							prompt: `${optimizedPrompt}. Provide comprehensive analysis.`,
 							platformModel: state.selectedModel,
+							language: state.selectedLanguage,
 						}),
 					}).then((res) => res.json())
 				);
@@ -811,6 +857,7 @@ export default function Home() {
 			fetchContent,
 			state.selectedModel,
 			toast,
+			state.selectedLanguage,
 		]
 	);
 
@@ -1236,6 +1283,31 @@ export default function Home() {
 													triggerClassName="w-full sm:w-[200px] bg-black text-white border-0"
 												/>
 											</div>
+											<Select
+												value={state.selectedLanguage}
+												onValueChange={(value) =>
+													updateState({
+														selectedLanguage:
+															value as
+																| "en"
+																| "vi",
+													})
+												}
+											>
+												<SelectTrigger className="w-[180px] bg-black text-white">
+													<SelectValue placeholder="Chọn ngôn ngữ" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="en">
+														English (Ngôn ngữ phản
+														hồi)
+													</SelectItem>
+													<SelectItem value="vi">
+														Tiếng Việt (Ngôn ngữ
+														phản hồi)
+													</SelectItem>
+												</SelectContent>
+											</Select>
 											<Button
 												type="submit"
 												disabled={
@@ -1316,27 +1388,56 @@ export default function Home() {
 													/>
 													<FileText className="absolute right-2 top-2.5 h-5 w-5 text-white" />
 												</div>
-												<Button
-													onClick={generateReport}
-													disabled={
-														!state.reportPrompt.trim() ||
-														state.status
-															.generatingReport ||
-														!state.selectedModel
-													}
-													type="button"
-													className="w-full sm:w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white"
-												>
-													{state.status
-														.generatingReport ? (
-														<span className="flex items-center gap-2">
-															<Loader2 className="h-4 w-4 animate-spin" />
-															Đang tạo...
-														</span>
-													) : (
-														"Tạo báo cáo"
-													)}
-												</Button>
+												<div className="flex gap-2">
+													<Select
+														value={
+															state.selectedLanguage
+														}
+														onValueChange={(
+															value
+														) =>
+															updateState({
+																selectedLanguage:
+																	value as
+																		| "en"
+																		| "vi",
+															})
+														}
+													>
+														<SelectTrigger className="w-[180px] bg-black text-white">
+															<SelectValue placeholder="Chọn ngôn ngữ" />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="en">
+																English
+															</SelectItem>
+															<SelectItem value="vi">
+																Tiếng Việt
+															</SelectItem>
+														</SelectContent>
+													</Select>
+													<Button
+														onClick={generateReport}
+														disabled={
+															!state.reportPrompt.trim() ||
+															state.status
+																.generatingReport ||
+															!state.selectedModel
+														}
+														type="button"
+														className="w-full sm:w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white"
+													>
+														{state.status
+															.generatingReport ? (
+															<span className="flex items-center gap-2">
+																<Loader2 className="h-4 w-4 animate-spin" />
+																Đang tạo...
+															</span>
+														) : (
+															"Tạo báo cáo"
+														)}
+													</Button>
+												</div>
 											</div>
 										)}
 									<div className="text-center sm:text-left">
@@ -1562,7 +1663,7 @@ export default function Home() {
 																			section.title
 																		}
 																	</h3>
-																	<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
+																	<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-h3:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
 																		<ReactMarkdown>
 																			{
 																				section.content
