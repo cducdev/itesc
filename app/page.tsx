@@ -62,6 +62,7 @@ const retryWithBackoff = async <T,>(
 	let lastError: any;
 	for (let i = 0; i < maxRetries; i++) {
 		try {
+			console.log(`Retry attempt: ${i}`);
 			return await operation();
 		} catch (error) {
 			lastError = error;
@@ -490,8 +491,16 @@ export default function Home() {
 				if (data.error) {
 					throw new Error(data.error);
 				}
+				// Đảm bảo rằng mỗi section có trường images
+				const reportWithImages = {
+					...data,
+					sections: data.sections.map((section: any) => ({
+						...section,
+						images: section.images || [],
+					})),
+				};
 				updateState({
-					report: data,
+					report: reportWithImages,
 					activeTab: "report",
 				});
 			})
@@ -584,6 +593,7 @@ export default function Home() {
 				// Step 2: Perform search with optimized query
 				updateStatus({ agentStep: "searching" });
 				console.log("Performing search with optimized query:", query);
+
 				const searchResponse = await retryWithBackoff(async () => {
 					const response = await fetch("/api/search", {
 						method: "POST",
@@ -613,7 +623,15 @@ export default function Home() {
 						}
 						throw new Error("Tìm kiếm thất bại");
 					}
-					return response.json();
+					const searchResponse = await response.json();
+					const searchResults = searchResponse.webPages;
+					if (!searchResults || searchResults.length === 0) {
+						console.log("AAAA");
+						throw new Error(
+							"Không tìm thấy kết quả. Vui lòng thử từ khoá khác."
+						);
+					}
+					return searchResponse;
 				});
 
 				const searchResults = searchResponse.webPages?.value || [];
@@ -1616,7 +1634,7 @@ export default function Home() {
 
 									<TabsContent value="report">
 										{state.report && (
-											<Card className="bg-black border-0">
+											<Card className="bg-gray-100 border-0">
 												<CardContent className="p-6 space-y-4">
 													<div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-4">
 														<h2 className="text-2xl font-bold text-blue-400 text-center sm:text-left">
@@ -1656,19 +1674,108 @@ export default function Home() {
 															) => (
 																<div
 																	key={index}
-																	className="space-y-3 border-t border-gray-800 pt-4 mb-6"
+																	className="space-y-3 border-t border-gray-300 pt-4 mb-6"
 																>
 																	<h3 className="text-xl font-semibold text-blue-400">
 																		{
 																			section.title
 																		}
 																	</h3>
-																	<div className="prose max-w-none text-white prose-h1:text-blue-400 prose-h3:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
+																	<div className="prose max-w-none text-gray-900 prose-h1:text-blue-400 prose-h3:text-blue-400 prose-strong:text-blue-400 prose-blockquote:text-blue-300 prose-blockquote:border-blue-400">
 																		<ReactMarkdown>
 																			{
 																				section.content
 																			}
 																		</ReactMarkdown>
+																		{section.images &&
+																			section
+																				.images
+																				.length >
+																				0 && (
+																				<div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+																					{section.images.map(
+																						(
+																							image,
+																							imgIndex
+																						) => (
+																							<div
+																								key={
+																									imgIndex
+																								}
+																								className="relative group"
+																							>
+																								<img
+																									src={
+																										image.url
+																									}
+																									alt={
+																										image.description
+																									}
+																									className="w-full h-auto rounded-lg shadow-lg transition-transform duration-200 group-hover:scale-105"
+																									onError={(
+																										e
+																									) => {
+																										const target =
+																											e.target as HTMLImageElement;
+																										target.parentElement?.classList.add(
+																											"hidden"
+																										);
+																									}}
+																								/>
+																								<div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+																									<p className="text-sm font-medium">
+																										{
+																											image.description
+																										}
+																									</p>
+																									<p className="text-xs text-gray-300 mt-1">
+																										{
+																											image.context
+																										}
+																									</p>
+																									{image.source && (
+																										<div className="mt-2 text-xs border-t border-gray-600 pt-2">
+																											<p className="text-blue-300">
+																												Nguồn:{" "}
+																												{
+																													image
+																														.source
+																														.title
+																												}
+																											</p>
+																											<p className="text-gray-400">
+																												{image
+																													.source
+																													.type ===
+																													"article" &&
+																													"Bài viết"}
+																												{image
+																													.source
+																													.type ===
+																													"document" &&
+																													"Tài liệu"}
+																												{image
+																													.source
+																													.type ===
+																													"webpage" &&
+																													"Trang web"}
+																												{
+																													" - "
+																												}
+																												{
+																													image
+																														.source
+																														.location
+																												}
+																											</p>
+																										</div>
+																									)}
+																								</div>
+																							</div>
+																						)
+																					)}
+																				</div>
+																			)}
 																	</div>
 																</div>
 															)

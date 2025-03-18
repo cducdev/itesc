@@ -131,6 +131,7 @@ Your report should:
 6. Maintain objectivity while addressing the specific aspects requested in the prompt
 7. Compare and contrast the information from sources, noting areas of consensus or points of contention
 8. Showcase key insights, important data, or innovative ideas
+9. Include relevant images from the sources when they add value to the report
 
 Here are the source articles to analyze (numbered for citation purposes):
 
@@ -140,6 +141,7 @@ ${articles
 [${index + 1}] Title: ${article.title}
 URL: ${article.url}
 Content: ${article.content}
+${article.images ? `Images: ${JSON.stringify(article.images)}` : ""}
 ---
 `
 	)
@@ -152,7 +154,14 @@ Format the report as a JSON object with the following structure:
   "sections": [
     {
       "title": "${reportStructure.sectionTitle}",
-      "content": "${reportStructure.sectionContent}"
+      "content": "${reportStructure.sectionContent}",
+      "images": [
+        {
+          "url": "image_url",
+          "description": "Brief description of the image",
+          "context": "Where this image fits in the section"
+        }
+      ]
     }
   ],
   "usedSources": [1, 2] // ${reportStructure.usedSourcesComment}
@@ -165,6 +174,7 @@ Use markdown formatting in the content to improve readability:
 - Include code blocks if relevant
 - Use > for quotations
 - Use --- for horizontal rules where appropriate
+- Include images using markdown syntax: ![description](image_url)
 
 CITATION GUIDELINES:
 1. Only use citations when truly necessary - specifically for:

@@ -9,6 +9,11 @@ export async function handleLocalFile(
 		onStatusUpdate?.(true);
 
 		let content = "";
+		let images: Array<{
+			url: string;
+			description: string;
+			context: string;
+		}> = [];
 		if (file.type === "text/plain" || file.name.endsWith(".txt")) {
 			content = await file.text();
 		} else if (
@@ -38,6 +43,7 @@ export async function handleLocalFile(
 
 			const data = await response.json();
 			content = data.content;
+			images = data.images || [];
 		} else {
 			throw new Error(
 				"Định dạng file không được hỗ trợ. Chỉ hỗ trợ file TXT, PDF và DOCX."
@@ -57,6 +63,7 @@ export async function handleLocalFile(
 			snippet: snippet,
 			isCustomUrl: true,
 			content: content, // Store full content for report generation
+			images: images, // Store images for report generation
 		};
 
 		return newResult;

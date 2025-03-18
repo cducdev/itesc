@@ -169,6 +169,7 @@ RULES:
 					status: 200,
 					response_time: Date.now() - startTime,
 				});
+
 				return NextResponse.json(parsedResponse);
 			} catch (parseError) {
 				console.error("Failed to parse optimization:", parseError);

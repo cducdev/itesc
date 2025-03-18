@@ -100,3 +100,12 @@ body {
 		@apply text-white hover:bg-gray-800;
 	}
 }
+
+code {
+	background-color: #ffffff;
+	/* color: #e6e6e6; */
+	padding: 0.2em 0.4em;
+	border-radius: 4px;
+	font-family: monospace;
+	font-size: 0.9em;
+}

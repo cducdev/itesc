@@ -1,9 +1,24 @@
+export interface ImageSource {
+	type: "article" | "document" | "webpage";
+	title: string;
+	location: string;
+	url: string;
+}
+
+export interface ImageInfo {
+	url: string;
+	description: string;
+	context: string;
+	source?: ImageSource;
+}
+
 export type Report = {
 	title: string;
 	summary: string;
 	sections: {
 		title: string;
 		content: string;
+		images?: ImageInfo[];
 	}[];
 	sources: {
 		id: string;
@@ -12,10 +27,14 @@ export type Report = {
 	}[];
 	usedSources?: number[]; // Array of source indices that were actually used/cited
 };
+
 export interface Article {
 	url: string;
 	title: string;
 	content: string;
+	images?: (ImageInfo & {
+		relevance_score: number;
+	})[];
 }
 
 export type KnowledgeBaseReport = {
@@ -33,6 +52,7 @@ export type SearchResult = {
 	isCustomUrl?: boolean;
 	score?: number;
 	content?: string;
+	images?: ImageInfo[];
 };
 
 export type RankingResult = {
