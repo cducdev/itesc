@@ -113,6 +113,7 @@ export type State = {
 	activeTab: string;
 	status: Status;
 	showTutorial: boolean;
+	showErrorGuide: boolean;
 	selectedLanguage: "en" | "vi";
 };
 

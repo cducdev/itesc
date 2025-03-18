@@ -15,6 +15,7 @@ import {
 	ChevronDown,
 	Brain,
 	Loader2,
+	AlertTriangle,
 } from "lucide-react";
 import {
 	Select,
@@ -39,6 +40,7 @@ import { ModelSelect, DEFAULT_MODEL } from "@/components/model-select";
 import { handleLocalFile, SUPPORTED_FILE_TYPES } from "@/lib/file-upload";
 import { CitationsFooter } from "@/components/citations-footer";
 import TutorialPopup from "@/components/TutorialPopup";
+import ErrorPopup from "@/components/ErrorPopup";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 
@@ -108,6 +110,7 @@ export default function Home() {
 			searchQueries: [],
 		},
 		showTutorial: false,
+		showErrorGuide: false,
 		selectedLanguage: "en",
 	});
 
@@ -997,6 +1000,12 @@ export default function Home() {
 							isOpen={state.showTutorial}
 							onClose={() => updateState({ showTutorial: false })}
 						/>
+						<ErrorPopup
+							isOpen={state.showErrorGuide}
+							onClose={() =>
+								updateState({ showErrorGuide: false })
+							}
+						/>
 
 						<div className="mb-3">
 							<h1 className="mb-2 text-center text-white flex items-center justify-center gap-2">
@@ -1025,7 +1034,7 @@ export default function Home() {
 										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full"
 									>
 										<Brain className="h-4 w-4" />
-										Knowledge Base
+										Kho lưu trữ
 									</Button>
 									<Button
 										variant="outline"
@@ -1037,6 +1046,19 @@ export default function Home() {
 									>
 										<QuestionMarkCircledIcon className="h-4 w-4" />
 										Hướng dẫn sử dụng
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() =>
+											updateState({
+												showErrorGuide: true,
+											})
+										}
+										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full bg-red-600 hover:bg-red-700 text-white"
+									>
+										<AlertTriangle className="h-4 w-4" />
+										Lỗi thường gặp
 									</Button>
 								</div>
 								<div className="flex justify-center items-center">
