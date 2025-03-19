@@ -27,10 +27,10 @@ const ErrorPopup: React.FC<ErrorPopupProps> = ({ isOpen, onClose }) => {
 		{
 			title: "Lỗi không thể tìm được thông tin",
 			description:
-				"Hệ thống không thể tìm được thông tin phù hợp với yêu cầu",
+				"Hệ thống tìm kiếm Google Search Engine (GSE) tạm thời không phản hồi",
 			solutions: [
-				"Thử sửa lại prompt để cụ thể và rõ ràng hơn",
-				"Chờ 5-10s rồi thử lại 1-2 lần",
+				"Đợi 5-10s rồi thử lại 1-2 lần",
+				"Nếu vẫn lỗi, hãy thử lại với prompt khác",
 			],
 		},
 	];

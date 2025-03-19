@@ -1055,7 +1055,7 @@ export default function Home() {
 												showErrorGuide: true,
 											})
 										}
-										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full bg-red-600 hover:bg-red-700 text-white"
+										className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm rounded-full bg-red-200 hover:bg-red-700 text-white"
 									>
 										<AlertTriangle className="h-4 w-4" />
 										Lỗi thường gặp
